@@ -7,132 +7,131 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #080c10;
-    --surface: #0d1117;
-    --border: #1e2a38;
-    --sol: #9945ff;
-    --btc: #f7931a;
-    --green: #00ff88;
-    --red: #ff3d5a;
-    --yellow: #ffd93d;
-    --text: #e8f0fe;
-    --muted: #4a6080;
-    --accent: #00d4ff;
+    --bg: #080c10; --surface: #0d1117; --border: #1e2a38;
+    --sol: #9945ff; --btc: #f7931a; --green: #00ff88;
+    --red: #ff3d5a; --yellow: #ffd93d; --text: #e8f0fe;
+    --muted: #4a6080; --accent: #00d4ff;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(ellipse at 15% 15%, rgba(153,69,255,0.07) 0%, transparent 50%),
-                radial-gradient(ellipse at 85% 85%, rgba(247,147,26,0.05) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .container { max-width: 480px; margin: 0 auto; padding: 16px; position: relative; z-index: 1; }
-  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
-  .logo span { color: var(--sol); }
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .live-badge { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--green); letter-spacing: 1px; }
-  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Space Mono',monospace; min-height:100vh; }
+  body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse at 15% 15%,rgba(153,69,255,.07) 0%,transparent 50%),radial-gradient(ellipse at 85% 85%,rgba(247,147,26,.05) 0%,transparent 50%); pointer-events:none; z-index:0; }
+  .container { max-width:480px; margin:0 auto; padding:16px; position:relative; z-index:1; }
+  .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+  .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:18px; }
+  .logo span { color:var(--sol); }
+  .header-right { display:flex; align-items:center; gap:10px; }
+  .live-badge { display:flex; align-items:center; gap:5px; font-size:10px; color:var(--green); letter-spacing:1px; }
+  .live-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
-  .refresh-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 4px 10px; font-family: 'Space Mono', monospace; font-size: 9px; cursor: pointer; letter-spacing: 1px; transition: all .2s; }
-  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .portfolio-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 12px; position: relative; overflow: hidden; }
-  .portfolio-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background: linear-gradient(90deg, transparent, var(--sol), transparent); }
-  .portfolio-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
-  .portfolio-value { font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 800; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
-  .portfolio-value.loading { color: var(--muted); font-size: 28px; }
-  .portfolio-pnl { display: flex; align-items: center; gap: 10px; font-size: 12px; margin-bottom: 4px; }
-  .pnl-pct { padding: 2px 8px; border-radius: 4px; font-weight: 700; }
-  .pnl-pct.red { background: rgba(255,61,90,.15); color: var(--red); }
-  .pnl-pct.green { background: rgba(0,255,136,.15); color: var(--green); }
-  .last-updated { font-size: 9px; color: var(--muted); }
-  .error-note { font-size: 10px; color: var(--red); margin-top: 4px; }
-  .prices-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-  .price-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
-  .price-card.btc { border-top: 2px solid var(--btc); }
-  .price-card.sol { border-top: 2px solid var(--sol); }
-  .price-ticker { font-size: 10px; letter-spacing: 2px; margin-bottom: 6px; }
-  .price-card.btc .price-ticker { color: var(--btc); }
-  .price-card.sol .price-ticker { color: var(--sol); }
-  .price-value { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
-  .price-change { font-size: 11px; }
-  .price-change.up { color: var(--green); }
-  .price-change.down { color: var(--red); }
-  .holdings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-  .holding-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
-  .holding-label { font-size: 9px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
-  .holding-value { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 2px; }
-  .holding-sub { font-size: 10px; color: var(--muted); }
-  .section-title { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; margin-top: 4px; }
-  .breakeven-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-  .be-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; }
-  .be-row:last-child { margin-bottom: 0; }
-  .be-label { color: var(--muted); }
-  .be-value { font-family: 'Syne', sans-serif; font-weight: 700; }
-  .milestone-list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
-  .milestone-item { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-  .milestone-item:last-child { border-bottom: none; }
-  .milestone-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
-  .milestone-info { flex: 1; min-width: 0; }
-  .milestone-name { font-size: 11px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .milestone-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
-  .milestone-fill { height: 100%; border-radius: 2px; }
-  .milestone-pct { font-size: 11px; flex-shrink: 0; text-align: right; min-width: 40px; }
-  .milestone-done .milestone-name { color: var(--green); }
-  .post-gen { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
-  .post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .post-title { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
-  .gen-btn { background: var(--sol); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; letter-spacing: 1px; transition: opacity .2s; }
-  .gen-btn:hover { opacity: .8; }
-  .gen-btn:disabled { opacity: .4; cursor: not-allowed; }
-  .post-output { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 13px; line-height: 1.6; min-height: 80px; white-space: pre-wrap; word-break: break-word; }
-  .post-output.placeholder { color: var(--muted); font-style: italic; }
-  .copy-btn { margin-top: 8px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 6px 12px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; width: 100%; transition: all .2s; letter-spacing: 1px; }
-  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .update-card { background: var(--surface); border: 1px solid var(--sol); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
-  .update-title { font-size: 10px; color: var(--sol); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
-  .update-row { display: flex; align-items: flex-end; gap: 8px; }
-  .update-field { flex: 1; }
-  .update-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 4px; }
-  .update-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; font-family: 'Space Mono', monospace; font-size: 12px; outline: none; transition: border-color .2s; }
-  .update-input:focus { border-color: var(--sol); }
-  .update-btn { background: var(--sol); color: white; border: none; border-radius: 6px; padding: 8px 14px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; letter-spacing: 1px; white-space: nowrap; transition: opacity .2s; flex-shrink: 0; }
-  .update-btn:hover { opacity: .8; }
-  .update-note { font-size: 10px; color: var(--green); margin-top: 6px; min-height: 16px; }
-  .api-setup { background: var(--surface); border: 1px dashed var(--muted); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
-  .api-setup.connected { border-color: var(--green); border-style: solid; }
-  .api-title { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
-  .api-setup.connected .api-title { color: var(--green); }
-  .api-row { display: flex; gap: 8px; align-items: center; }
-  .api-input { flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; font-family: 'Space Mono', monospace; font-size: 11px; outline: none; transition: border-color .2s; }
-  .api-input:focus { border-color: var(--sol); }
-  .api-btn { background: var(--muted); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; white-space: nowrap; transition: all .2s; }
-  .api-btn.saved { background: var(--green); color: #000; }
-  .api-note { font-size: 9px; color: var(--muted); margin-top: 6px; }
-  .voice-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
-  .voice-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; }
-  .voice-header-left { display: flex; align-items: center; gap: 8px; }
-  .voice-title { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
-  .voice-title.has-examples { color: var(--green); }
-  .voice-toggle { font-size: 10px; color: var(--muted); transition: transform .2s; }
-  .voice-toggle.open { transform: rotate(180deg); }
-  .voice-body { padding: 0 16px 14px; display: none; }
-  .voice-body.open { display: block; }
-  .voice-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 10px; font-family: 'Space Mono', monospace; font-size: 11px; line-height: 1.5; outline: none; resize: vertical; min-height: 140px; transition: border-color .2s; }
-  .voice-textarea:focus { border-color: var(--sol); }
-  .voice-instructions { font-size: 9px; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
-  .voice-actions { display: flex; gap: 8px; margin-top: 8px; }
-  .voice-save-btn { background: var(--sol); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; letter-spacing: 1px; transition: opacity .2s; }
-  .voice-save-btn:hover { opacity: .8; }
-  .voice-clear-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 7px 14px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; letter-spacing: 1px; transition: all .2s; }
-  .voice-clear-btn:hover { border-color: var(--red); color: var(--red); }
-  .voice-note { font-size: 9px; color: var(--green); margin-top: 6px; min-height: 14px; }
-  .voice-count { font-size: 9px; color: var(--sol); }
-  .footer { text-align: center; font-size: 10px; color: var(--muted); padding: 16px 0; letter-spacing: 1px; }
+  .refresh-btn { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:4px 10px; font-family:'Space Mono',monospace; font-size:9px; cursor:pointer; letter-spacing:1px; transition:all .2s; }
+  .refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .portfolio-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:12px; position:relative; overflow:hidden; }
+  .portfolio-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background:linear-gradient(90deg,transparent,var(--sol),transparent); }
+  .portfolio-label { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+  .portfolio-value { font-family:'Syne',sans-serif; font-size:42px; font-weight:800; letter-spacing:-2px; line-height:1; margin-bottom:8px; }
+  .portfolio-value.loading { color:var(--muted); font-size:28px; }
+  .portfolio-pnl { display:flex; align-items:center; gap:10px; font-size:12px; margin-bottom:4px; }
+  .pnl-pct { padding:2px 8px; border-radius:4px; font-weight:700; }
+  .pnl-pct.red { background:rgba(255,61,90,.15); color:var(--red); }
+  .pnl-pct.green { background:rgba(0,255,136,.15); color:var(--green); }
+  .last-updated { font-size:9px; color:var(--muted); }
+  .error-note { font-size:10px; color:var(--red); margin-top:4px; }
+  .prices-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .price-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; }
+  .price-card.btc { border-top:2px solid var(--btc); }
+  .price-card.sol { border-top:2px solid var(--sol); }
+  .price-ticker { font-size:10px; letter-spacing:2px; margin-bottom:6px; }
+  .price-card.btc .price-ticker { color:var(--btc); }
+  .price-card.sol .price-ticker { color:var(--sol); }
+  .price-value { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; margin-bottom:4px; }
+  .price-change { font-size:11px; }
+  .price-change.up { color:var(--green); } .price-change.down { color:var(--red); }
+  .holdings-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .holding-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; }
+  .holding-label { font-size:9px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+  .holding-value { font-family:'Syne',sans-serif; font-size:18px; font-weight:700; margin-bottom:2px; }
+  .holding-sub { font-size:10px; color:var(--muted); }
+  .section-title { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; margin-top:4px; }
+  .update-card { background:var(--surface); border:1px solid var(--sol); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .update-title { font-size:10px; color:var(--sol); letter-spacing:2px; text-transform:uppercase; margin-bottom:10px; }
+  .update-row { display:flex; align-items:flex-end; gap:8px; }
+  .update-field { flex:1; }
+  .update-label { font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; display:block; margin-bottom:4px; }
+  .update-input { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:7px 10px; font-family:'Space Mono',monospace; font-size:12px; outline:none; transition:border-color .2s; }
+  .update-input:focus { border-color:var(--sol); }
+  .update-btn { background:var(--sol); color:white; border:none; border-radius:6px; padding:8px 14px; font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; letter-spacing:1px; white-space:nowrap; transition:opacity .2s; flex-shrink:0; }
+  .update-btn:hover { opacity:.8; }
+  .update-note { font-size:10px; color:var(--green); margin-top:6px; min-height:16px; }
+  .journey-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:12px; display:flex; align-items:center; gap:20px; }
+  .days-section { flex:1; text-align:center; border-right:1px solid var(--border); padding-right:20px; }
+  .days-number { font-family:'Syne',sans-serif; font-size:52px; font-weight:800; color:var(--sol); line-height:1; }
+  .days-label { font-size:9px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-top:4px; }
+  .days-sub { font-size:9px; color:var(--muted); margin-top:4px; }
+  .hodl-badges { flex:1; display:flex; flex-direction:column; gap:6px; }
+  .hodl-badge { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:6px 10px; font-size:10px; text-align:center; }
+  .hodl-badge.done { border-color:var(--green); color:var(--green); }
+  .hodl-badge.active { border-color:var(--sol); color:var(--sol); }
+  .hodl-badge.locked { color:var(--muted); }
+  .history-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+  .history-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .history-title { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
+  .history-clear { font-size:9px; color:var(--muted); background:transparent; border:none; cursor:pointer; font-family:'Space Mono',monospace; letter-spacing:1px; transition:color .2s; }
+  .history-clear:hover { color:var(--red); }
+  .history-wrap { position:relative; width:100%; height:130px; }
+  .history-empty { font-size:10px; color:var(--muted); text-align:center; padding:40px 0; font-style:italic; }
+  .history-stats { display:flex; justify-content:space-between; margin-top:12px; }
+  .hstat-label { font-size:9px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:2px; }
+  .hstat-value { font-family:'Syne',sans-serif; font-weight:700; font-size:12px; }
+  .breakeven-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+  .be-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-size:12px; }
+  .be-row:last-child { margin-bottom:0; }
+  .be-label { color:var(--muted); }
+  .be-value { font-family:'Syne',sans-serif; font-weight:700; }
+  .milestone-list { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:12px; }
+  .milestone-item { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:12px; }
+  .milestone-item:last-child { border-bottom:none; }
+  .milestone-icon { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+  .milestone-info { flex:1; min-width:0; }
+  .milestone-name { font-size:11px; font-weight:700; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .milestone-bar { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+  .milestone-fill { height:100%; border-radius:2px; }
+  .milestone-pct { font-size:11px; flex-shrink:0; text-align:right; min-width:40px; }
+  .milestone-done .milestone-name { color:var(--green); }
+  .api-setup { background:var(--surface); border:1px dashed var(--muted); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .api-setup.connected { border-color:var(--green); border-style:solid; }
+  .api-title { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+  .api-setup.connected .api-title { color:var(--green); }
+  .api-row { display:flex; gap:8px; align-items:center; }
+  .api-input { flex:1; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:7px 10px; font-family:'Space Mono',monospace; font-size:11px; outline:none; }
+  .api-btn { background:var(--muted); color:white; border:none; border-radius:6px; padding:8px 12px; font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; white-space:nowrap; transition:all .2s; }
+  .api-btn.saved { background:var(--green); color:#000; }
+  .api-note { font-size:9px; color:var(--muted); margin-top:6px; }
+  .voice-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; margin-bottom:12px; overflow:hidden; }
+  .voice-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer; }
+  .voice-header-left { display:flex; align-items:center; gap:8px; }
+  .voice-title { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
+  .voice-title.has-examples { color:var(--green); }
+  .voice-toggle { font-size:10px; color:var(--muted); transition:transform .2s; }
+  .voice-toggle.open { transform:rotate(180deg); }
+  .voice-body { padding:0 16px 14px; display:none; }
+  .voice-body.open { display:block; }
+  .voice-textarea { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:10px; font-family:'Space Mono',monospace; font-size:11px; line-height:1.5; outline:none; resize:vertical; min-height:140px; }
+  .voice-instructions { font-size:9px; color:var(--muted); margin-bottom:8px; line-height:1.5; }
+  .voice-actions { display:flex; gap:8px; margin-top:8px; }
+  .voice-save-btn { background:var(--sol); color:white; border:none; border-radius:6px; padding:7px 14px; font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; }
+  .voice-clear-btn { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:7px 14px; font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; }
+  .voice-note { font-size:9px; color:var(--green); margin-top:6px; min-height:14px; }
+  .voice-count { font-size:9px; color:var(--sol); }
+  .post-gen { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; margin-bottom:12px; }
+  .post-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .post-title { font-size:10px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
+  .gen-btn { background:var(--sol); color:white; border:none; border-radius:6px; padding:6px 12px; font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; letter-spacing:1px; transition:opacity .2s; }
+  .gen-btn:disabled { opacity:.4; cursor:not-allowed; }
+  .post-output { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:14px; font-size:13px; line-height:1.6; min-height:80px; white-space:pre-wrap; word-break:break-word; }
+  .post-output.placeholder { color:var(--muted); font-style:italic; }
+  .copy-btn { margin-top:8px; background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:6px 12px; font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; width:100%; transition:all .2s; letter-spacing:1px; }
+  .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .footer { text-align:center; font-size:10px; color:var(--muted); padding:16px 0; letter-spacing:1px; }
 </style>
 </head>
 <body>
@@ -170,12 +169,12 @@
     <div class="holding-card">
       <div class="holding-label">BTC VALUE</div>
       <div class="holding-value" id="btcValue">—</div>
-      <div class="holding-sub" id="btcSub">0.1809 BTC held</div>
+      <div class="holding-sub" id="btcSub">— BTC held</div>
     </div>
     <div class="holding-card">
       <div class="holding-label">SOL VALUE</div>
       <div class="holding-value" id="solValue">—</div>
-      <div class="holding-sub" id="solSub">141.6 SOL staked ~4%</div>
+      <div class="holding-sub" id="solSub">— SOL staked ~4%</div>
     </div>
   </div>
   <div class="update-card">
@@ -183,15 +182,53 @@
     <div class="update-row">
       <div class="update-field">
         <label class="update-label">SOL UNITS</label>
-        <input type="number" id="solInput" class="update-input" placeholder="141.6" step="0.001">
+        <input type="number" id="solInput" class="update-input" step="0.001">
       </div>
       <div class="update-field">
         <label class="update-label">BTC UNITS</label>
-        <input type="number" id="btcInput" class="update-input" placeholder="0.1809" step="0.0001">
+        <input type="number" id="btcInput" class="update-input" step="0.0001">
       </div>
-      <button class="update-btn" onclick="updateHoldings()">UPDATE</button>
+      <button class="update-btn" onclick="updateHoldings()">SAVE</button>
     </div>
     <div class="update-note" id="updateNote"></div>
+  </div>
+  <div class="section-title">HODL JOURNEY</div>
+  <div class="journey-card">
+    <div class="days-section">
+      <div class="days-number" id="daysCount">—</div>
+      <div class="days-label">DAYS HODL'D</div>
+      <div class="days-sub">since Sep 30, 2025</div>
+    </div>
+    <div class="hodl-badges">
+      <div class="hodl-badge" id="badge90">⋯ 90 days</div>
+      <div class="hodl-badge" id="badge180">⋯ 180 days</div>
+      <div class="hodl-badge" id="badge365">⋯ 365 days</div>
+    </div>
+  </div>
+  <div class="section-title">PORTFOLIO HISTORY</div>
+  <div class="history-card">
+    <div class="history-header">
+      <div class="history-title">VALUE OVER TIME</div>
+      <button class="history-clear" onclick="clearHistory()">CLEAR DATA</button>
+    </div>
+    <div class="history-wrap" id="historyWrap">
+      <div class="history-empty" id="historyEmpty">History builds automatically as you visit — check back soon</div>
+      <canvas id="historyChart" style="display:none; width:100%; height:130px;"></canvas>
+    </div>
+    <div class="history-stats" id="historyStats" style="display:none;">
+      <div>
+        <div class="hstat-label">ALL TIME LOW</div>
+        <div class="hstat-value" id="hstatLow" style="color:var(--red);">—</div>
+      </div>
+      <div style="text-align:center;">
+        <div class="hstat-label">DATA POINTS</div>
+        <div class="hstat-value" id="hstatPoints">—</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="hstat-label">ALL TIME HIGH</div>
+        <div class="hstat-value" id="hstatHigh" style="color:var(--green);">—</div>
+      </div>
+    </div>
   </div>
   <div class="section-title">BREAKEVEN ANALYSIS</div>
   <div class="breakeven-card">
@@ -230,7 +267,7 @@
       <input type="password" id="apiKeyInput" class="api-input" placeholder="sk-ant-...">
       <button class="api-btn" id="apiSaveBtn" onclick="saveApiKey()">SAVE</button>
     </div>
-    <div class="api-note" id="apiNote">Enter your Anthropic API key. Get one free at console.anthropic.com</div>
+    <div class="api-note" id="apiNote">Enter your Anthropic API key. Get one at console.anthropic.com</div>
   </div>
   <div class="voice-card">
     <div class="voice-header" onclick="toggleVoice()">
@@ -241,8 +278,8 @@
       <div class="voice-toggle" id="voiceToggle">▼</div>
     </div>
     <div class="voice-body" id="voiceBody">
-      <div class="voice-instructions">Paste your 5–10 best performing posts below, one per line. Claude will match your exact voice and style when generating new posts.</div>
-      <textarea class="voice-textarea" id="voiceTextarea" placeholder="Paste your best posts here, one per line..."></textarea>
+      <div class="voice-instructions">Paste your 5–10 best performing posts below, separated by blank lines. Claude will match your exact voice.</div>
+      <textarea class="voice-textarea" id="voiceTextarea" placeholder="Paste your best posts here, separated by blank lines..."></textarea>
       <div class="voice-actions">
         <button class="voice-save-btn" onclick="saveVoiceExamples()">SAVE EXAMPLES</button>
         <button class="voice-clear-btn" onclick="clearVoiceExamples()">CLEAR</button>
@@ -258,16 +295,16 @@
     <div class="post-output placeholder" id="postOutput">Add your API key and voice examples above, then hit generate...</div>
     <button class="copy-btn" id="copyBtn" onclick="copyPost()" style="display:none;">COPY TO CLIPBOARD</button>
   </div>
-  <div class="footer">@joosh_sol // STACKING THROUGH THE DIP // $BTC $SOL</div>
+  <div class="footer">@joosh_sol // HODLING SINCE SEP 30 2025 // $BTC $SOL</div>
 </div>
 <script>
-  let solUnits = 141.6;
-  let btcUnits = 0.1809;
   const COST = 35185.20;
+  const HODL_START = new Date('2025-09-30');
+  let solUnits = parseFloat(localStorage.getItem('solUnits')) || 141.6;
+  let btcUnits = parseFloat(localStorage.getItem('btcUnits')) || 0.1809;
   let bp = 0, sp = 0, bc = 0, sc = 0;
   let apiKey = localStorage.getItem('claudeApiKey') || '';
   let voiceExamples = localStorage.getItem('voiceExamples') || '';
-
   const milestones = [
     { name: 'Breakeven ($35,185)', target: 35185, icon: '⚖️', color: '#ffd93d' },
     { name: '$40K — Birthday Goal 🎂', target: 40000, icon: '🎯', color: '#00d4ff' },
@@ -275,10 +312,12 @@
     { name: '$75K Portfolio', target: 75000, icon: '🏗️', color: '#f7931a' },
     { name: '$100K Portfolio', target: 100000, icon: '🏆', color: '#00ff88' },
   ];
-
   const fmt = (n, d=0) => '$' + n.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
   const fmtC = p => (p>=0?'+':'')+p.toFixed(2)+'%';
-
+  document.getElementById('solInput').placeholder = solUnits.toFixed(4);
+  document.getElementById('btcInput').placeholder = btcUnits.toFixed(4);
+  document.getElementById('solSub').textContent = solUnits.toFixed(4) + ' SOL staked ~4%';
+  document.getElementById('btcSub').textContent = btcUnits.toFixed(4) + ' BTC held';
   if (apiKey) {
     document.getElementById('apiSetup').classList.add('connected');
     document.getElementById('apiNote').textContent = '✓ API key saved — AI generation active';
@@ -286,254 +325,231 @@
     document.getElementById('apiSaveBtn').textContent = 'SAVED';
     document.getElementById('apiKeyInput').placeholder = 'sk-ant-••••••••';
   }
-
-  if (voiceExamples) {
-    document.getElementById('voiceTextarea').value = voiceExamples;
-    updateVoiceCount();
+  if (voiceExamples) { document.getElementById('voiceTextarea').value = voiceExamples; updateVoiceCount(); }
+  function updateDays() {
+    const days = Math.floor((new Date() - HODL_START) / 86400000);
+    document.getElementById('daysCount').textContent = days;
+    const b90 = document.getElementById('badge90');
+    const b180 = document.getElementById('badge180');
+    const b365 = document.getElementById('badge365');
+    if (days >= 90) { b90.className='hodl-badge done'; b90.textContent='✓ 90 days'; }
+    else { b90.className='hodl-badge active'; b90.textContent='→ 90 days ('+(90-days)+' to go)'; }
+    if (days >= 180) { b180.className='hodl-badge done'; b180.textContent='✓ 180 days'; }
+    else { b180.className='hodl-badge active'; b180.textContent='→ 180 days ('+(180-days)+' to go)'; }
+    if (days >= 365) { b365.className='hodl-badge done'; b365.textContent='✓ 365 days'; }
+    else { b365.className='hodl-badge locked'; b365.textContent='⋯ 365 days ('+(365-days)+' to go)'; }
   }
-
-  function updateVoiceCount() {
-    const lines = voiceExamples.split('\n').filter(l => l.trim().length > 20);
-    const countEl = document.getElementById('voiceCount');
-    const titleEl = document.getElementById('voiceTitle');
-    if (lines.length > 0) {
-      countEl.textContent = lines.length + ' examples saved';
-      titleEl.classList.add('has-examples');
-    } else {
-      countEl.textContent = '';
-      titleEl.classList.remove('has-examples');
+  function saveHistoryPoint(total) {
+    let h = JSON.parse(localStorage.getItem('portfolioHistory')||'[]');
+    const now = Date.now();
+    if (h.length===0 || now-h[h.length-1].t > 1800000) {
+      h.push({t:now, v:Math.round(total)});
+      if (h.length>300) h=h.slice(-300);
+      localStorage.setItem('portfolioHistory', JSON.stringify(h));
     }
+    drawHistory(h);
   }
-
-  function toggleVoice() {
-    const body = document.getElementById('voiceBody');
-    const toggle = document.getElementById('voiceToggle');
-    body.classList.toggle('open');
-    toggle.classList.toggle('open');
+  function clearHistory() {
+    localStorage.removeItem('portfolioHistory');
+    document.getElementById('historyEmpty').style.display='block';
+    document.getElementById('historyChart').style.display='none';
+    document.getElementById('historyStats').style.display='none';
   }
-
-  function saveVoiceExamples() {
-    const text = document.getElementById('voiceTextarea').value.trim();
-    voiceExamples = text;
-    localStorage.setItem('voiceExamples', text);
-    updateVoiceCount();
-    document.getElementById('voiceNote').textContent = '✓ Voice examples saved';
-    setTimeout(() => document.getElementById('voiceNote').textContent = '', 2000);
-  }
-
-  function clearVoiceExamples() {
-    voiceExamples = '';
-    localStorage.removeItem('voiceExamples');
-    document.getElementById('voiceTextarea').value = '';
-    updateVoiceCount();
-    document.getElementById('voiceNote').textContent = 'Examples cleared';
-    setTimeout(() => document.getElementById('voiceNote').textContent = '', 2000);
-  }
-
-  function saveApiKey() {
-    const key = document.getElementById('apiKeyInput').value.trim();
-    if (!key || !key.startsWith('sk-ant-')) {
-      document.getElementById('apiNote').textContent = '⚠ Invalid key — should start with sk-ant-';
-      document.getElementById('apiNote').style.color = '#ff3d5a';
+  function drawHistory(history) {
+    if (!history||history.length<2) {
+      document.getElementById('historyEmpty').style.display='block';
+      document.getElementById('historyChart').style.display='none';
+      document.getElementById('historyStats').style.display='none';
       return;
     }
-    apiKey = key;
-    localStorage.setItem('claudeApiKey', key);
-    document.getElementById('apiSetup').classList.add('connected');
-    document.getElementById('apiNote').textContent = '✓ API key saved — AI generation active';
-    document.getElementById('apiNote').style.color = '#00ff88';
-    document.getElementById('apiSaveBtn').classList.add('saved');
-    document.getElementById('apiSaveBtn').textContent = 'SAVED';
-    document.getElementById('apiKeyInput').value = '';
-    document.getElementById('apiKeyInput').placeholder = 'sk-ant-••••••••';
+    document.getElementById('historyEmpty').style.display='none';
+    document.getElementById('historyStats').style.display='flex';
+    const canvas = document.getElementById('historyChart');
+    canvas.style.display='block';
+    const wrap = document.getElementById('historyWrap');
+    const dpr = window.devicePixelRatio||1;
+    const W = wrap.offsetWidth, H = 130;
+    canvas.width=W*dpr; canvas.height=H*dpr;
+    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr,dpr); ctx.clearRect(0,0,W,H);
+    const values = history.map(h=>h.v);
+    const minV = Math.min(...values,COST)*.97;
+    const maxV = Math.max(...values,COST)*1.03;
+    const range = maxV-minV||1;
+    const pad={t:8,r:8,b:24,l:8};
+    const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+    const xP=i=>pad.l+(i/(history.length-1))*cW;
+    const yP=v=>pad.t+cH-((v-minV)/range)*cH;
+    const beY=yP(COST);
+    ctx.beginPath(); ctx.setLineDash([3,4]);
+    ctx.strokeStyle='rgba(255,215,61,.25)'; ctx.lineWidth=1;
+    ctx.moveTo(pad.l,beY); ctx.lineTo(W-pad.r,beY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(255,215,61,.4)'; ctx.font='8px Space Mono';
+    ctx.fillText('COST BASIS',pad.l+2,beY-2);
+    const lastV=values[values.length-1];
+    const rgb=lastV>=COST?'0,255,136':'153,69,255';
+    const lineCol=lastV>=COST?'#00ff88':'#9945ff';
+    const grad=ctx.createLinearGradient(0,pad.t,0,H-pad.b);
+    grad.addColorStop(0,`rgba(${rgb},.25)`);
+    grad.addColorStop(1,`rgba(${rgb},0)`);
+    ctx.beginPath();
+    ctx.moveTo(xP(0),yP(history[0].v));
+    for(let i=1;i<history.length;i++) ctx.lineTo(xP(i),yP(history[i].v));
+    ctx.lineTo(xP(history.length-1),H-pad.b);
+    ctx.lineTo(pad.l,H-pad.b);
+    ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(xP(0),yP(history[0].v));
+    for(let i=1;i<history.length;i++) ctx.lineTo(xP(i),yP(history[i].v));
+    ctx.strokeStyle=lineCol; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(xP(history.length-1),yP(lastV),4,0,Math.PI*2);
+    ctx.fillStyle=lineCol; ctx.fill();
+    ctx.fillStyle='rgba(74,96,128,.8)'; ctx.font='8px Space Mono';
+    const d1=new Date(history[0].t).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const d2=new Date(history[history.length-1].t).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    ctx.fillText(d1,pad.l,H-6);
+    ctx.fillText(d2,W-pad.r-ctx.measureText(d2).width,H-6);
+    document.getElementById('hstatLow').textContent=fmt(Math.min(...values));
+    document.getElementById('hstatHigh').textContent=fmt(Math.max(...values));
+    document.getElementById('hstatPoints').textContent=history.length;
   }
-
-  async function generatePost() {
-    const btn = document.getElementById('genBtn');
-    const output = document.getElementById('postOutput');
-    const copyBtn = document.getElementById('copyBtn');
-    if (!apiKey) {
-      output.classList.remove('placeholder');
-      output.textContent = '⚠ Please add your Claude API key above first.';
-      return;
-    }
-    btn.disabled = true;
-    btn.textContent = 'GENERATING...';
-    output.classList.remove('placeholder');
-    output.textContent = 'Writing your post...';
-    copyBtn.style.display = 'none';
-    const total = btcUnits*bp + solUnits*sp;
-    const pnlPct = ((total - COST) / COST * 100).toFixed(1);
-    const examplesSection = voiceExamples.trim()
-      ? `\n\nHere are his best performing posts — match this exact voice, tone, and style:\n---\n${voiceExamples.trim()}\n---`
-      : '';
-    const prompt = `You are writing a tweet for @joosh_sol, a 21-year-old CS student in Syracuse NY who stacks BTC and SOL every month on a regular salary. He bought near the cycle high and has been DCA-ing through a significant drawdown.${examplesSection}
-
-Current market data:
-- BTC: $${Math.round(bp).toLocaleString()} (${bc >= 0 ? '+' : ''}${bc.toFixed(2)}% 24h)
-- SOL: $${sp.toFixed(2)} (${sc >= 0 ? '+' : ''}${sc.toFixed(2)}% 24h)
-- Portfolio P&L: ${pnlPct}% from cost basis
-- BTC is ${bc >= 0 ? 'up' : 'down'} today, SOL is ${sc >= 0 ? 'up' : 'down'} today
-
-Voice rules:
-- Confident, dry, self-aware, conviction-forward
-- Never hype-driven or desperate
-- Self-deprecating humor about bad entry is fine
-- No rocket emojis
-- No price predictions
-- No dollar amounts or unit counts
-- Short punchy sentences
-- 2-4 short paragraphs max
-- End with $BTC $SOL on its own line
-
-Write ONE original tweet. No hashtags except $BTC $SOL at the end. No quotes around it. Just the tweet text.`;
-    try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 300,
-          messages: [{ role: 'user', content: prompt }]
-        })
-      });
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error?.message || 'API error');
-      }
-      const data = await response.json();
-      output.textContent = data.content[0].text.trim();
-      copyBtn.style.display = 'block';
-      copyBtn.textContent = 'COPY TO CLIPBOARD';
-    } catch(e) {
-      output.textContent = '⚠ Error: ' + e.message;
-    }
-    btn.disabled = false;
-    btn.textContent = 'GENERATE';
-  }
-
-  function copyPost() {
-    navigator.clipboard.writeText(document.getElementById('postOutput').textContent).then(() => {
-      const b = document.getElementById('copyBtn');
-      b.textContent = '✓ COPIED';
-      setTimeout(() => b.textContent = 'COPY TO CLIPBOARD', 2000);
-    });
-  }
-
-  async function fetchPrices() {
-    try {
-      const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana&vs_currencies=usd&include_24hr_change=true');
-      if (!r.ok) throw new Error();
-      const d = await r.json();
-      bp = d.bitcoin.usd; sp = d.solana.usd;
-      bc = d.bitcoin.usd_24h_change; sc = d.solana.usd_24h_change;
-      document.getElementById('errorNote').style.display = 'none';
-    } catch(e) {
-      if (bp===0) { bp=68000; sp=83; bc=0; sc=0; }
-      const en = document.getElementById('errorNote');
-      en.textContent = '⚠ Using cached prices — check connection';
-      en.style.display = 'block';
-    }
-  }
-
   function updateHoldings() {
-    const si = parseFloat(document.getElementById('solInput').value);
-    const bi = parseFloat(document.getElementById('btcInput').value);
-    if (!isNaN(si) && si > 0) solUnits = si;
-    if (!isNaN(bi) && bi > 0) btcUnits = bi;
-    document.getElementById('solSub').textContent = solUnits.toFixed(4) + ' SOL staked ~4%';
-    document.getElementById('btcSub').textContent = btcUnits.toFixed(4) + ' BTC held';
-    document.getElementById('updateNote').textContent = '✓ Updated at ' + new Date().toLocaleTimeString();
-    document.getElementById('solInput').value = '';
-    document.getElementById('btcInput').value = '';
+    const si=parseFloat(document.getElementById('solInput').value);
+    const bi=parseFloat(document.getElementById('btcInput').value);
+    if(!isNaN(si)&&si>0){solUnits=si;localStorage.setItem('solUnits',solUnits);}
+    if(!isNaN(bi)&&bi>0){btcUnits=bi;localStorage.setItem('btcUnits',btcUnits);}
+    document.getElementById('solSub').textContent=solUnits.toFixed(4)+' SOL staked ~4%';
+    document.getElementById('btcSub').textContent=btcUnits.toFixed(4)+' BTC held';
+    document.getElementById('solInput').placeholder=solUnits.toFixed(4);
+    document.getElementById('btcInput').placeholder=btcUnits.toFixed(4);
+    document.getElementById('solInput').value='';
+    document.getElementById('btcInput').value='';
+    document.getElementById('updateNote').textContent='✓ Saved at '+new Date().toLocaleTimeString();
     render();
   }
-
   function simulate() {
-    const sb = parseFloat(document.getElementById('simBtc').value);
-    const ss = parseFloat(document.getElementById('simSol').value);
-    if (isNaN(sb) && isNaN(ss)) return;
-    const useBtc = isNaN(sb) ? bp : sb;
-    const useSol = isNaN(ss) ? sp : ss;
-    const bv = btcUnits * useBtc;
-    const sv = solUnits * useSol;
-    const total = bv + sv;
-    const pnl = total - COST;
-    const sign = pnl >= 0 ? '+' : '';
-    document.getElementById('simTotal').textContent = fmt(total);
-    document.getElementById('simTotal').style.color = total >= COST ? '#00ff88' : '#ffd93d';
-    document.getElementById('simPnl').textContent = sign + fmt(Math.abs(pnl)) + ' (' + sign + ((pnl/COST)*100).toFixed(1) + '%)';
-    document.getElementById('simPnl').style.color = pnl >= 0 ? '#00ff88' : '#ff3d5a';
-    document.getElementById('simBtcVal').textContent = fmt(bv);
-    document.getElementById('simSolVal').textContent = fmt(sv);
-    document.getElementById('simResult').style.display = 'block';
+    const sb=parseFloat(document.getElementById('simBtc').value);
+    const ss=parseFloat(document.getElementById('simSol').value);
+    if(isNaN(sb)&&isNaN(ss)) return;
+    const ub=isNaN(sb)?bp:sb, us=isNaN(ss)?sp:ss;
+    const bv=btcUnits*ub, sv=solUnits*us, total=bv+sv;
+    const pnl=total-COST, sign=pnl>=0?'+':'';
+    document.getElementById('simTotal').textContent=fmt(total);
+    document.getElementById('simTotal').style.color=total>=COST?'#00ff88':'#ffd93d';
+    document.getElementById('simPnl').textContent=sign+fmt(Math.abs(pnl))+' ('+sign+((pnl/COST)*100).toFixed(1)+'%)';
+    document.getElementById('simPnl').style.color=pnl>=0?'#00ff88':'#ff3d5a';
+    document.getElementById('simBtcVal').textContent=fmt(bv);
+    document.getElementById('simSolVal').textContent=fmt(sv);
+    document.getElementById('simResult').style.display='block';
   }
-
-  function render() {
-    const bv = btcUnits*bp, sv = solUnits*sp, total = bv+sv;
-    const pnl = total-COST, pnlP = (pnl/COST)*100;
-    const sign = pnl>=0?'+':'';
-    const pv = document.getElementById('portfolioValue');
-    pv.textContent = fmt(total); pv.classList.remove('loading');
-    document.getElementById('pnlAmount').textContent = sign+fmt(Math.abs(pnl))+' all time';
-    document.getElementById('pnlAmount').style.color = pnl>=0?'#00ff88':'#ff3d5a';
-    const pp = document.getElementById('pnlPct');
-    pp.textContent = sign+Math.abs(pnlP).toFixed(2)+'%';
-    pp.className = 'pnl-pct '+(pnl>=0?'green':'red');
-    document.getElementById('btcPrice').textContent = fmt(bp);
-    const bce = document.getElementById('btcChange');
-    bce.textContent = fmtC(bc); bce.className='price-change '+(bc>=0?'up':'down');
-    document.getElementById('solPrice').textContent = fmt(sp,2);
-    const sce = document.getElementById('solChange');
-    sce.textContent = fmtC(sc); sce.className='price-change '+(sc>=0?'up':'down');
-    document.getElementById('btcValue').textContent = fmt(bv);
-    document.getElementById('solValue').textContent = fmt(sv);
-    const gap = COST-total;
-    const gEl = document.getElementById('beGap');
-    gEl.textContent = gap>0 ? fmt(gap)+' remaining' : '✅ DONE';
-    gEl.style.color = gap>0?'#ffd93d':'#00ff88';
-    const snp = (COST - btcUnits*bp)/solUnits;
-    const snEl = document.getElementById('beSolNeeded');
-    snEl.textContent = snp>sp ? '$'+snp.toFixed(2) : '✅ Already there';
-    snEl.style.color = snp>sp?'#ffd93d':'#00ff88';
-    const bnp = (COST - solUnits*sp)/btcUnits;
-    const bnEl = document.getElementById('beBtcNeeded');
-    bnEl.textContent = bnp>bp ? '$'+Math.round(bnp).toLocaleString() : '✅ Already there';
-    bnEl.style.color = bnp>bp?'#ffd93d':'#00ff88';
-    const ml = document.getElementById('milestoneList');
-    ml.innerHTML = '';
-    milestones.forEach(m => {
-      const pct = Math.min((total/m.target)*100, 100);
-      const done = total>=m.target;
-      const el = document.createElement('div');
-      el.className = 'milestone-item'+(done?' milestone-done':'');
-      el.innerHTML = `
-        <div class="milestone-icon" style="background:${m.color}20;color:${m.color}">${done?'✓':m.icon}</div>
-        <div class="milestone-info">
-          <div class="milestone-name">${m.name}</div>
-          <div class="milestone-bar"><div class="milestone-fill" style="width:${pct}%;background:${m.color}"></div></div>
-        </div>
-        <div class="milestone-pct" style="color:${done?'#00ff88':m.color}">${done?'DONE':pct.toFixed(1)+'%'}</div>
-      `;
+  function updateVoiceCount() {
+    const lines=voiceExamples.split('\n').filter(l=>l.trim().length>20);
+    const c=document.getElementById('voiceCount'), t=document.getElementById('voiceTitle');
+    if(lines.length>0){c.textContent=lines.length+' saved';t.classList.add('has-examples');}
+    else{c.textContent='';t.classList.remove('has-examples');}
+  }
+  function toggleVoice(){document.getElementById('voiceBody').classList.toggle('open');document.getElementById('voiceToggle').classList.toggle('open');}
+  function saveVoiceExamples(){voiceExamples=document.getElementById('voiceTextarea').value.trim();localStorage.setItem('voiceExamples',voiceExamples);updateVoiceCount();document.getElementById('voiceNote').textContent='✓ Saved';setTimeout(()=>document.getElementById('voiceNote').textContent='',2000);}
+  function clearVoiceExamples(){voiceExamples='';localStorage.removeItem('voiceExamples');document.getElementById('voiceTextarea').value='';updateVoiceCount();}
+  function saveApiKey(){
+    const key=document.getElementById('apiKeyInput').value.trim();
+    if(!key||!key.startsWith('sk-ant-')){document.getElementById('apiNote').textContent='⚠ Invalid key';document.getElementById('apiNote').style.color='#ff3d5a';return;}
+    apiKey=key;localStorage.setItem('claudeApiKey',key);
+    document.getElementById('apiSetup').classList.add('connected');
+    document.getElementById('apiNote').textContent='✓ API key saved';
+    document.getElementById('apiNote').style.color='#00ff88';
+    document.getElementById('apiSaveBtn').classList.add('saved');
+    document.getElementById('apiSaveBtn').textContent='SAVED';
+    document.getElementById('apiKeyInput').value='';
+    document.getElementById('apiKeyInput').placeholder='sk-ant-••••••••';
+  }
+  async function generatePost(){
+    const btn=document.getElementById('genBtn'),output=document.getElementById('postOutput'),copyBtn=document.getElementById('copyBtn');
+    if(!apiKey){output.classList.remove('placeholder');output.textContent='⚠ Please add your Claude API key above first.';return;}
+    btn.disabled=true;btn.textContent='GENERATING...';
+    output.classList.remove('placeholder');output.textContent='Writing your post...';
+    copyBtn.style.display='none';
+    const total=btcUnits*bp+solUnits*sp;
+    const pnlPct=((total-COST)/COST*100).toFixed(1);
+    const days=Math.floor((new Date()-HODL_START)/86400000);
+    const ex=voiceExamples.trim()?`\n\nHere are his best performing posts — match this exact voice:\n---\n${voiceExamples.trim()}\n---`:'';
+    const prompt=`You are writing a tweet for @joosh_sol, a 21-year-old CS student in Syracuse NY who stacks BTC and SOL every month on a regular salary. He bought near the cycle high and has been DCA-ing through a drawdown. He has been holding for ${days} days without selling.${ex}\n\nCurrent market:\n- BTC: $${Math.round(bp).toLocaleString()} (${bc>=0?'+':''}${bc.toFixed(2)}% 24h)\n- SOL: $${sp.toFixed(2)} (${sc>=0?'+':''}${sc.toFixed(2)}% 24h)\n- Portfolio P&L: ${pnlPct}% from cost basis\n\nVoice: confident, dry, self-aware, conviction-forward, never hype-driven, self-deprecating humor about bad entry ok, no rocket emojis, no price predictions, no dollar amounts or unit counts, short punchy sentences, 2-4 short paragraphs, end with $BTC $SOL on its own line. Write ONE tweet. No quotes. Just the text.`;
+    try{
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,messages:[{role:'user',content:prompt}]})});
+      if(!r.ok){const e=await r.json();throw new Error(e.error?.message||'API error');}
+      const d=await r.json();
+      output.textContent=d.content[0].text.trim();
+      copyBtn.style.display='block';copyBtn.textContent='COPY TO CLIPBOARD';
+    }catch(e){output.textContent='⚠ Error: '+e.message;}
+    btn.disabled=false;btn.textContent='GENERATE';
+  }
+  function copyPost(){navigator.clipboard.writeText(document.getElementById('postOutput').textContent).then(()=>{const b=document.getElementById('copyBtn');b.textContent='✓ COPIED';setTimeout(()=>b.textContent='COPY TO CLIPBOARD',2000);});}
+  async function fetchPrices(){
+    try{
+      const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana&vs_currencies=usd&include_24hr_change=true');
+      if(!r.ok) throw new Error();
+      const d=await r.json();
+      bp=d.bitcoin.usd;sp=d.solana.usd;bc=d.bitcoin.usd_24h_change;sc=d.solana.usd_24h_change;
+      document.getElementById('errorNote').style.display='none';
+    }catch(e){
+      if(bp===0){bp=68000;sp=83;bc=0;sc=0;}
+      const en=document.getElementById('errorNote');
+      en.textContent='⚠ Using cached prices — check connection';en.style.display='block';
+    }
+  }
+  function render(){
+    const bv=btcUnits*bp,sv=solUnits*sp,total=bv+sv;
+    const pnl=total-COST,pnlP=(pnl/COST)*100,sign=pnl>=0?'+':'';
+    const pv=document.getElementById('portfolioValue');
+    pv.textContent=fmt(total);pv.classList.remove('loading');
+    document.getElementById('pnlAmount').textContent=sign+fmt(Math.abs(pnl))+' all time';
+    document.getElementById('pnlAmount').style.color=pnl>=0?'#00ff88':'#ff3d5a';
+    const pp=document.getElementById('pnlPct');
+    pp.textContent=sign+Math.abs(pnlP).toFixed(2)+'%';
+    pp.className='pnl-pct '+(pnl>=0?'green':'red');
+    document.getElementById('btcPrice').textContent=fmt(bp);
+    const bce=document.getElementById('btcChange');
+    bce.textContent=fmtC(bc);bce.className='price-change '+(bc>=0?'up':'down');
+    document.getElementById('solPrice').textContent=fmt(sp,2);
+    const sce=document.getElementById('solChange');
+    sce.textContent=fmtC(sc);sce.className='price-change '+(sc>=0?'up':'down');
+    document.getElementById('btcValue').textContent=fmt(bv);
+    document.getElementById('solValue').textContent=fmt(sv);
+    const gap=COST-total;
+    const gEl=document.getElementById('beGap');
+    gEl.textContent=gap>0?fmt(gap)+' remaining':'✅ DONE';
+    gEl.style.color=gap>0?'#ffd93d':'#00ff88';
+    const snp=(COST-btcUnits*bp)/solUnits;
+    const snEl=document.getElementById('beSolNeeded');
+    snEl.textContent=snp>sp?'$'+snp.toFixed(2):'✅ Already there';
+    snEl.style.color=snp>sp?'#ffd93d':'#00ff88';
+    const bnp=(COST-solUnits*sp)/btcUnits;
+    const bnEl=document.getElementById('beBtcNeeded');
+    bnEl.textContent=bnp>bp?'$'+Math.round(bnp).toLocaleString():'✅ Already there';
+    bnEl.style.color=bnp>bp?'#ffd93d':'#00ff88';
+    const ml=document.getElementById('milestoneList');
+    ml.innerHTML='';
+    milestones.forEach(m=>{
+      const pct=Math.min((total/m.target)*100,100),done=total>=m.target;
+      const el=document.createElement('div');
+      el.className='milestone-item'+(done?' milestone-done':'');
+      el.innerHTML=`<div class="milestone-icon" style="background:${m.color}20;color:${m.color}">${done?'✓':m.icon}</div><div class="milestone-info"><div class="milestone-name">${m.name}</div><div class="milestone-bar"><div class="milestone-fill" style="width:${pct}%;background:${m.color}"></div></div></div><div class="milestone-pct" style="color:${done?'#00ff88':m.color}">${done?'DONE':pct.toFixed(1)+'%'}</div>`;
       ml.appendChild(el);
     });
-    document.getElementById('lastUpdated').textContent = 'Updated '+new Date().toLocaleTimeString();
+    document.getElementById('lastUpdated').textContent='Updated '+new Date().toLocaleTimeString();
+    saveHistoryPoint(total);
   }
-
-  async function refreshAll() {
-    document.getElementById('portfolioValue').textContent = 'LOADING...';
+  async function refreshAll(){
+    document.getElementById('portfolioValue').textContent='LOADING...';
     document.getElementById('portfolioValue').classList.add('loading');
-    await fetchPrices();
-    render();
+    await fetchPrices();render();updateDays();
+    const h=JSON.parse(localStorage.getItem('portfolioHistory')||'[]');
+    if(h.length>=2) drawHistory(h);
   }
-
   refreshAll();
-  setInterval(refreshAll, 60000);
+  setInterval(refreshAll,60000);
 </script>
 </body>
 </html>
