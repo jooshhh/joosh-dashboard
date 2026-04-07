@@ -113,6 +113,25 @@
   .api-btn { background: var(--muted); color: white; border: none; border-radius: 6px; padding: 8px 12px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; white-space: nowrap; transition: all .2s; }
   .api-btn.saved { background: var(--green); color: #000; }
   .api-note { font-size: 9px; color: var(--muted); margin-top: 6px; }
+  .voice-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+  .voice-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; }
+  .voice-header-left { display: flex; align-items: center; gap: 8px; }
+  .voice-title { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .voice-title.has-examples { color: var(--green); }
+  .voice-toggle { font-size: 10px; color: var(--muted); transition: transform .2s; }
+  .voice-toggle.open { transform: rotate(180deg); }
+  .voice-body { padding: 0 16px 14px; display: none; }
+  .voice-body.open { display: block; }
+  .voice-textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 10px; font-family: 'Space Mono', monospace; font-size: 11px; line-height: 1.5; outline: none; resize: vertical; min-height: 140px; transition: border-color .2s; }
+  .voice-textarea:focus { border-color: var(--sol); }
+  .voice-instructions { font-size: 9px; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
+  .voice-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .voice-save-btn { background: var(--sol); color: white; border: none; border-radius: 6px; padding: 7px 14px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; letter-spacing: 1px; transition: opacity .2s; }
+  .voice-save-btn:hover { opacity: .8; }
+  .voice-clear-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 7px 14px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; letter-spacing: 1px; transition: all .2s; }
+  .voice-clear-btn:hover { border-color: var(--red); color: var(--red); }
+  .voice-note { font-size: 9px; color: var(--green); margin-top: 6px; min-height: 14px; }
+  .voice-count { font-size: 9px; color: var(--sol); }
   .footer { text-align: center; font-size: 10px; color: var(--muted); padding: 16px 0; letter-spacing: 1px; }
 </style>
 </head>
@@ -211,14 +230,32 @@
       <input type="password" id="apiKeyInput" class="api-input" placeholder="sk-ant-...">
       <button class="api-btn" id="apiSaveBtn" onclick="saveApiKey()">SAVE</button>
     </div>
-    <div class="api-note" id="apiNote">Enter your Anthropic API key to enable AI post generation. Get one free at console.anthropic.com</div>
+    <div class="api-note" id="apiNote">Enter your Anthropic API key. Get one free at console.anthropic.com</div>
+  </div>
+  <div class="voice-card">
+    <div class="voice-header" onclick="toggleVoice()">
+      <div class="voice-header-left">
+        <div class="voice-title" id="voiceTitle">VOICE EXAMPLES</div>
+        <div class="voice-count" id="voiceCount"></div>
+      </div>
+      <div class="voice-toggle" id="voiceToggle">▼</div>
+    </div>
+    <div class="voice-body" id="voiceBody">
+      <div class="voice-instructions">Paste your 5–10 best performing posts below, one per line. Claude will match your exact voice and style when generating new posts.</div>
+      <textarea class="voice-textarea" id="voiceTextarea" placeholder="Paste your best posts here, one per line..."></textarea>
+      <div class="voice-actions">
+        <button class="voice-save-btn" onclick="saveVoiceExamples()">SAVE EXAMPLES</button>
+        <button class="voice-clear-btn" onclick="clearVoiceExamples()">CLEAR</button>
+      </div>
+      <div class="voice-note" id="voiceNote"></div>
+    </div>
   </div>
   <div class="post-gen">
     <div class="post-header">
       <div class="post-title">CONTENT GENERATOR</div>
       <button class="gen-btn" id="genBtn" onclick="generatePost()">GENERATE</button>
     </div>
-    <div class="post-output placeholder" id="postOutput">Add your API key above then hit generate for a fresh AI-written post based on current market conditions...</div>
+    <div class="post-output placeholder" id="postOutput">Add your API key and voice examples above, then hit generate...</div>
     <button class="copy-btn" id="copyBtn" onclick="copyPost()" style="display:none;">COPY TO CLIPBOARD</button>
   </div>
   <div class="footer">@joosh_sol // STACKING THROUGH THE DIP // $BTC $SOL</div>
@@ -229,6 +266,7 @@
   const COST = 35185.20;
   let bp = 0, sp = 0, bc = 0, sc = 0;
   let apiKey = localStorage.getItem('claudeApiKey') || '';
+  let voiceExamples = localStorage.getItem('voiceExamples') || '';
 
   const milestones = [
     { name: 'Breakeven ($35,185)', target: 35185, icon: '⚖️', color: '#ffd93d' },
@@ -247,8 +285,49 @@
     document.getElementById('apiSaveBtn').classList.add('saved');
     document.getElementById('apiSaveBtn').textContent = 'SAVED';
     document.getElementById('apiKeyInput').placeholder = 'sk-ant-••••••••';
-    document.getElementById('postOutput').textContent = 'Hit generate for a fresh AI post based on current market conditions...';
-    document.getElementById('postOutput').classList.add('placeholder');
+  }
+
+  if (voiceExamples) {
+    document.getElementById('voiceTextarea').value = voiceExamples;
+    updateVoiceCount();
+  }
+
+  function updateVoiceCount() {
+    const lines = voiceExamples.split('\n').filter(l => l.trim().length > 20);
+    const countEl = document.getElementById('voiceCount');
+    const titleEl = document.getElementById('voiceTitle');
+    if (lines.length > 0) {
+      countEl.textContent = lines.length + ' examples saved';
+      titleEl.classList.add('has-examples');
+    } else {
+      countEl.textContent = '';
+      titleEl.classList.remove('has-examples');
+    }
+  }
+
+  function toggleVoice() {
+    const body = document.getElementById('voiceBody');
+    const toggle = document.getElementById('voiceToggle');
+    body.classList.toggle('open');
+    toggle.classList.toggle('open');
+  }
+
+  function saveVoiceExamples() {
+    const text = document.getElementById('voiceTextarea').value.trim();
+    voiceExamples = text;
+    localStorage.setItem('voiceExamples', text);
+    updateVoiceCount();
+    document.getElementById('voiceNote').textContent = '✓ Voice examples saved';
+    setTimeout(() => document.getElementById('voiceNote').textContent = '', 2000);
+  }
+
+  function clearVoiceExamples() {
+    voiceExamples = '';
+    localStorage.removeItem('voiceExamples');
+    document.getElementById('voiceTextarea').value = '';
+    updateVoiceCount();
+    document.getElementById('voiceNote').textContent = 'Examples cleared';
+    setTimeout(() => document.getElementById('voiceNote').textContent = '', 2000);
   }
 
   function saveApiKey() {
@@ -267,8 +346,6 @@
     document.getElementById('apiSaveBtn').textContent = 'SAVED';
     document.getElementById('apiKeyInput').value = '';
     document.getElementById('apiKeyInput').placeholder = 'sk-ant-••••••••';
-    document.getElementById('postOutput').textContent = 'Hit generate for a fresh AI post based on current market conditions...';
-    document.getElementById('postOutput').classList.add('placeholder');
   }
 
   async function generatePost() {
@@ -287,11 +364,14 @@
     copyBtn.style.display = 'none';
     const total = btcUnits*bp + solUnits*sp;
     const pnlPct = ((total - COST) / COST * 100).toFixed(1);
-    const prompt = `You are writing a tweet for @joosh_sol, a 21-year-old CS student in Syracuse NY who stacks BTC and SOL every month on a regular salary. He bought near the cycle high and has been DCA-ing through a significant drawdown.
+    const examplesSection = voiceExamples.trim()
+      ? `\n\nHere are his best performing posts — match this exact voice, tone, and style:\n---\n${voiceExamples.trim()}\n---`
+      : '';
+    const prompt = `You are writing a tweet for @joosh_sol, a 21-year-old CS student in Syracuse NY who stacks BTC and SOL every month on a regular salary. He bought near the cycle high and has been DCA-ing through a significant drawdown.${examplesSection}
 
 Current market data:
-- BTC price: $${Math.round(bp).toLocaleString()} (${bc >= 0 ? '+' : ''}${bc.toFixed(2)}% 24h)
-- SOL price: $${sp.toFixed(2)} (${sc >= 0 ? '+' : ''}${sc.toFixed(2)}% 24h)
+- BTC: $${Math.round(bp).toLocaleString()} (${bc >= 0 ? '+' : ''}${bc.toFixed(2)}% 24h)
+- SOL: $${sp.toFixed(2)} (${sc >= 0 ? '+' : ''}${sc.toFixed(2)}% 24h)
 - Portfolio P&L: ${pnlPct}% from cost basis
 - BTC is ${bc >= 0 ? 'up' : 'down'} today, SOL is ${sc >= 0 ? 'up' : 'down'} today
 
