@@ -1,57 +1,364 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>Portfolio Dashboard</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>joosh_sol // portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c10;
+    --surface: #0d1117;
+    --border: #1e2a38;
+    --sol: #9945ff;
+    --btc: #f7931a;
+    --green: #00ff88;
+    --red: #ff3d5a;
+    --yellow: #ffd93d;
+    --text: #e8f0fe;
+    --muted: #4a6080;
+    --accent: #00d4ff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Space Mono', monospace; min-height: 100vh; }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at 15% 15%, rgba(153,69,255,0.07) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 85%, rgba(247,147,26,0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .container { max-width: 480px; margin: 0 auto; padding: 16px; position: relative; z-index: 1; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; }
+  .logo span { color: var(--sol); }
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .live-badge { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--green); letter-spacing: 1px; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
+  .refresh-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 4px 10px; font-family: 'Space Mono', monospace; font-size: 9px; cursor: pointer; letter-spacing: 1px; transition: all .2s; }
+  .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .portfolio-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 12px; position: relative; overflow: hidden; }
+  .portfolio-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background: linear-gradient(90deg, transparent, var(--sol), transparent); }
+  .portfolio-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+  .portfolio-value { font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 800; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
+  .portfolio-value.loading { color: var(--muted); font-size: 28px; }
+  .portfolio-pnl { display: flex; align-items: center; gap: 10px; font-size: 12px; margin-bottom: 4px; }
+  .pnl-pct { padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+  .pnl-pct.red { background: rgba(255,61,90,.15); color: var(--red); }
+  .pnl-pct.green { background: rgba(0,255,136,.15); color: var(--green); }
+  .last-updated { font-size: 9px; color: var(--muted); }
+  .error-note { font-size: 10px; color: var(--red); margin-top: 4px; }
+  .prices-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .price-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .price-card.btc { border-top: 2px solid var(--btc); }
+  .price-card.sol { border-top: 2px solid var(--sol); }
+  .price-ticker { font-size: 10px; letter-spacing: 2px; margin-bottom: 6px; }
+  .price-card.btc .price-ticker { color: var(--btc); }
+  .price-card.sol .price-ticker { color: var(--sol); }
+  .price-value { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .price-change { font-size: 11px; }
+  .price-change.up { color: var(--green); }
+  .price-change.down { color: var(--red); }
+  .holdings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .holding-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+  .holding-label { font-size: 9px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .holding-value { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+  .holding-sub { font-size: 10px; color: var(--muted); }
+  .section-title { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; margin-top: 4px; }
+  .breakeven-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .be-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; }
+  .be-row:last-child { margin-bottom: 0; }
+  .be-label { color: var(--muted); }
+  .be-value { font-family: 'Syne', sans-serif; font-weight: 700; }
+  .milestone-list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .milestone-item { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .milestone-item:last-child { border-bottom: none; }
+  .milestone-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+  .milestone-info { flex: 1; min-width: 0; }
+  .milestone-name { font-size: 11px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .milestone-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .milestone-fill { height: 100%; border-radius: 2px; }
+  .milestone-pct { font-size: 11px; flex-shrink: 0; text-align: right; min-width: 40px; }
+  .milestone-done .milestone-name { color: var(--green); }
+  .post-gen { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .post-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .post-title { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .gen-btn { background: var(--sol); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; letter-spacing: 1px; transition: opacity .2s; }
+  .gen-btn:hover { opacity: .8; }
+  .post-output { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 13px; line-height: 1.6; min-height: 80px; white-space: pre-wrap; word-break: break-word; }
+  .post-output.placeholder { color: var(--muted); font-style: italic; }
+  .copy-btn { margin-top: 8px; background: transparent; border: 1px solid var(--border); color: var(--muted); border-radius: 6px; padding: 6px 12px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; width: 100%; transition: all .2s; letter-spacing: 1px; }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .update-card { background: var(--surface); border: 1px solid var(--sol); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+  .update-title { font-size: 10px; color: var(--sol); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  .update-row { display: flex; align-items: flex-end; gap: 8px; }
+  .update-field { flex: 1; }
+  .update-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .update-input { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 7px 10px; font-family: 'Space Mono', monospace; font-size: 12px; outline: none; transition: border-color .2s; }
+  .update-input:focus { border-color: var(--sol); }
+  .update-btn { background: var(--sol); color: white; border: none; border-radius: 6px; padding: 8px 14px; font-family: 'Space Mono', monospace; font-size: 10px; cursor: pointer; letter-spacing: 1px; white-space: nowrap; transition: opacity .2s; flex-shrink: 0; }
+  .update-btn:hover { opacity: .8; }
+  .update-note { font-size: 10px; color: var(--green); margin-top: 6px; min-height: 16px; }
+  .footer { text-align: center; font-size: 10px; color: var(--muted); padding: 16px 0; letter-spacing: 1px; }
+</style>
 </head>
 <body>
-    <header>
-        <h1>Your Portfolio Dashboard</h1>
-    </header>
-    <main>
-        <section id="price-tracking">
-            <h2>Price Tracking</h2>
-            <div id="prices">
-                <!-- Price tracking will be displayed here -->
-            </div>
-        </section>
+<div class="container">
+  <div class="header">
+    <div class="logo">joosh<span>_sol</span></div>
+    <div class="header-right">
+      <button class="refresh-btn" onclick="refreshAll()">↻ REFRESH</button>
+      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+    </div>
+  </div>
+  <div class="portfolio-card">
+    <div class="portfolio-label">TOTAL PORTFOLIO VALUE</div>
+    <div class="portfolio-value loading" id="portfolioValue">LOADING...</div>
+    <div class="portfolio-pnl">
+      <span id="pnlAmount">—</span>
+      <span class="pnl-pct red" id="pnlPct">—</span>
+    </div>
+    <div class="last-updated" id="lastUpdated"></div>
+    <div class="error-note" id="errorNote" style="display:none;"></div>
+  </div>
+  <div class="prices-row">
+    <div class="price-card btc">
+      <div class="price-ticker">BTC</div>
+      <div class="price-value" id="btcPrice">—</div>
+      <div class="price-change" id="btcChange">—</div>
+    </div>
+    <div class="price-card sol">
+      <div class="price-ticker">SOL</div>
+      <div class="price-value" id="solPrice">—</div>
+      <div class="price-change" id="solChange">—</div>
+    </div>
+  </div>
+  <div class="holdings-grid">
+    <div class="holding-card">
+      <div class="holding-label">BTC VALUE</div>
+      <div class="holding-value" id="btcValue">—</div>
+      <div class="holding-sub" id="btcSub">0.1809 BTC held</div>
+    </div>
+    <div class="holding-card">
+      <div class="holding-label">SOL VALUE</div>
+      <div class="holding-value" id="solValue">—</div>
+      <div class="holding-sub" id="solSub">141.6 SOL staked ~4%</div>
+    </div>
+  </div>
+  <div class="update-card">
+    <div class="update-title">UPDATE HOLDINGS</div>
+    <div class="update-row">
+      <div class="update-field">
+        <label class="update-label">SOL UNITS</label>
+        <input type="number" id="solInput" class="update-input" placeholder="141.6" step="0.001">
+      </div>
+      <div class="update-field">
+        <label class="update-label">BTC UNITS</label>
+        <input type="number" id="btcInput" class="update-input" placeholder="0.1809" step="0.0001">
+      </div>
+      <button class="update-btn" onclick="updateHoldings()">UPDATE</button>
+    </div>
+    <div class="update-note" id="updateNote"></div>
+  </div>
+  <div class="section-title">BREAKEVEN ANALYSIS</div>
+  <div class="breakeven-card">
+    <div class="be-row"><span class="be-label">Cost basis</span><span class="be-value">$35,185.20</span></div>
+    <div class="be-row"><span class="be-label">Gap to breakeven</span><span class="be-value" id="beGap">—</span></div>
+    <div class="be-row"><span class="be-label">SOL needed (@ current BTC)</span><span class="be-value" id="beSolNeeded">—</span></div>
+    <div class="be-row"><span class="be-label">BTC needed (@ current SOL)</span><span class="be-value" id="beBtcNeeded">—</span></div>
+  </div>
+  <div class="section-title">MILESTONE TRACKER</div>
+  <div class="milestone-list" id="milestoneList"></div>
+  <div class="section-title">PRICE SIMULATOR</div>
+  <div class="update-card" style="border-color:var(--accent);">
+    <div class="update-title" style="color:var(--accent);">WHAT IF PRICES WERE...</div>
+    <div class="update-row" style="margin-bottom:10px;">
+      <div class="update-field">
+        <label class="update-label">BTC PRICE ($)</label>
+        <input type="number" id="simBtc" class="update-input" placeholder="100000" step="100">
+      </div>
+      <div class="update-field">
+        <label class="update-label">SOL PRICE ($)</label>
+        <input type="number" id="simSol" class="update-input" placeholder="150" step="0.01">
+      </div>
+      <button class="update-btn" style="background:var(--accent);" onclick="simulate()">CALC</button>
+    </div>
+    <div id="simResult" style="display:none;">
+      <div class="be-row"><span class="be-label">Portfolio value</span><span class="be-value" id="simTotal">—</span></div>
+      <div class="be-row"><span class="be-label">vs cost basis</span><span class="be-value" id="simPnl">—</span></div>
+      <div class="be-row"><span class="be-label">BTC value</span><span class="be-value" id="simBtcVal">—</span></div>
+      <div class="be-row" style="margin-bottom:0;"><span class="be-label">SOL value</span><span class="be-value" id="simSolVal">—</span></div>
+    </div>
+  </div>
+  <div class="section-title">@joosh_sol POST GENERATOR</div>
+  <div class="post-gen">
+    <div class="post-header">
+      <div class="post-title">CONTENT GENERATOR</div>
+      <button class="gen-btn" onclick="generatePost()">GENERATE</button>
+    </div>
+    <div class="post-output placeholder" id="postOutput">Hit generate for a post based on current conditions...</div>
+    <button class="copy-btn" id="copyBtn" onclick="copyPost()" style="display:none;">COPY TO CLIPBOARD</button>
+  </div>
+  <div class="footer">@joosh_sol // STACKING THROUGH THE DIP // $BTC $SOL</div>
+</div>
+<script>
+  let solUnits = 141.6;
+  let btcUnits = 0.1809;
+  const COST = 35185.20;
+  let bp = 0, sp = 0, bc = 0, sc = 0, pi = 0;
 
-        <section id="holdings-management">
-            <h2>Holdings Management</h2>
-            <table id="holdings-table">
-                <thead>
-                    <tr>
-                        <th>Asset</th>
-                        <th>Quantity</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Holdings will be listed here -->
-                </tbody>
-            </table>
-        </section>
+  const milestones = [
+    { name: 'Breakeven ($35,185)', target: 35185, icon: '⚖️', color: '#ffd93d' },
+    { name: '$40K — Birthday Goal 🎂', target: 40000, icon: '🎯', color: '#00d4ff' },
+    { name: '$50K Portfolio', target: 50000, icon: '💎', color: '#9945ff' },
+    { name: '$75K Portfolio', target: 75000, icon: '🏗️', color: '#f7931a' },
+    { name: '$100K Portfolio', target: 100000, icon: '🏆', color: '#00ff88' },
+  ];
 
-        <section id="milestone-tracking">
-            <h2>Milestone Tracking</h2>
-            <ul id="milestone-list">
-                <!-- Milestones will be listed here -->
-            </ul>
-        </section>
+  const fmt = (n, d=0) => '$' + n.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
+  const fmtC = p => (p>=0?'+':'')+p.toFixed(2)+'%';
 
-        <section id="post-generation">
-            <h2>Post Generation</h2>
-            <form id="post-form">
-                <textarea id="post-content" placeholder="What do you want to share?"></textarea>
-                <button type="submit">Generate Post</button>
-            </form>
-            <div id="post-output">
-                <!-- Generated posts will appear here -->
-            </div>
-        </section>
-    </main>
-    <script src="script.js"></script>
+  async function fetchPrices() {
+    try {
+      const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana&vs_currencies=usd&include_24hr_change=true');
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      bp = d.bitcoin.usd; sp = d.solana.usd;
+      bc = d.bitcoin.usd_24h_change; sc = d.solana.usd_24h_change;
+      document.getElementById('errorNote').style.display = 'none';
+    } catch(e) {
+      if (bp===0) { bp=68000; sp=83; bc=0; sc=0; }
+      const en = document.getElementById('errorNote');
+      en.textContent = '⚠ Using cached prices — check connection';
+      en.style.display = 'block';
+    }
+  }
+
+  function updateHoldings() {
+    const si = parseFloat(document.getElementById('solInput').value);
+    const bi = parseFloat(document.getElementById('btcInput').value);
+    if (!isNaN(si) && si > 0) solUnits = si;
+    if (!isNaN(bi) && bi > 0) btcUnits = bi;
+    document.getElementById('solSub').textContent = solUnits.toFixed(4) + ' SOL staked ~4%';
+    document.getElementById('btcSub').textContent = btcUnits.toFixed(4) + ' BTC held';
+    document.getElementById('updateNote').textContent = '✓ Updated at ' + new Date().toLocaleTimeString();
+    document.getElementById('solInput').value = '';
+    document.getElementById('btcInput').value = '';
+    render();
+  }
+
+  function simulate() {
+    const sb = parseFloat(document.getElementById('simBtc').value);
+    const ss = parseFloat(document.getElementById('simSol').value);
+    if (isNaN(sb) && isNaN(ss)) return;
+    const useBtc = isNaN(sb) ? bp : sb;
+    const useSol = isNaN(ss) ? sp : ss;
+    const bv = btcUnits * useBtc;
+    const sv = solUnits * useSol;
+    const total = bv + sv;
+    const pnl = total - COST;
+    const sign = pnl >= 0 ? '+' : '';
+    document.getElementById('simTotal').textContent = fmt(total);
+    document.getElementById('simTotal').style.color = total >= COST ? '#00ff88' : '#ffd93d';
+    document.getElementById('simPnl').textContent = sign + fmt(Math.abs(pnl)) + ' (' + sign + ((pnl/COST)*100).toFixed(1) + '%)';
+    document.getElementById('simPnl').style.color = pnl >= 0 ? '#00ff88' : '#ff3d5a';
+    document.getElementById('simBtcVal').textContent = fmt(bv);
+    document.getElementById('simSolVal').textContent = fmt(sv);
+    document.getElementById('simResult').style.display = 'block';
+  }
+
+  function render() {
+    const bv = btcUnits*bp, sv = solUnits*sp, total = bv+sv;
+    const pnl = total-COST, pnlP = (pnl/COST)*100;
+    const sign = pnl>=0?'+':'';
+    const pv = document.getElementById('portfolioValue');
+    pv.textContent = fmt(total); pv.classList.remove('loading');
+    document.getElementById('pnlAmount').textContent = sign+fmt(Math.abs(pnl))+' all time';
+    document.getElementById('pnlAmount').style.color = pnl>=0?'#00ff88':'#ff3d5a';
+    const pp = document.getElementById('pnlPct');
+    pp.textContent = sign+Math.abs(pnlP).toFixed(2)+'%';
+    pp.className = 'pnl-pct '+(pnl>=0?'green':'red');
+    document.getElementById('btcPrice').textContent = fmt(bp);
+    const bce = document.getElementById('btcChange');
+    bce.textContent = fmtC(bc); bce.className='price-change '+(bc>=0?'up':'down');
+    document.getElementById('solPrice').textContent = fmt(sp,2);
+    const sce = document.getElementById('solChange');
+    sce.textContent = fmtC(sc); sce.className='price-change '+(sc>=0?'up':'down');
+    document.getElementById('btcValue').textContent = fmt(bv);
+    document.getElementById('solValue').textContent = fmt(sv);
+    const gap = COST-total;
+    const gEl = document.getElementById('beGap');
+    gEl.textContent = gap>0 ? fmt(gap)+' remaining' : '✅ DONE';
+    gEl.style.color = gap>0?'#ffd93d':'#00ff88';
+    const snp = (COST - btcUnits*bp)/solUnits;
+    const snEl = document.getElementById('beSolNeeded');
+    snEl.textContent = snp>sp ? '$'+snp.toFixed(2) : '✅ Already there';
+    snEl.style.color = snp>sp?'#ffd93d':'#00ff88';
+    const bnp = (COST - solUnits*sp)/btcUnits;
+    const bnEl = document.getElementById('beBtcNeeded');
+    bnEl.textContent = bnp>bp ? '$'+Math.round(bnp).toLocaleString() : '✅ Already there';
+    bnEl.style.color = bnp>bp?'#ffd93d':'#00ff88';
+    const ml = document.getElementById('milestoneList');
+    ml.innerHTML = '';
+    milestones.forEach(m => {
+      const pct = Math.min((total/m.target)*100, 100);
+      const done = total>=m.target;
+      const el = document.createElement('div');
+      el.className = 'milestone-item'+(done?' milestone-done':'');
+      el.innerHTML = `
+        <div class="milestone-icon" style="background:${m.color}20;color:${m.color}">${done?'✓':m.icon}</div>
+        <div class="milestone-info">
+          <div class="milestone-name">${m.name}</div>
+          <div class="milestone-bar"><div class="milestone-fill" style="width:${pct}%;background:${m.color}"></div></div>
+        </div>
+        <div class="milestone-pct" style="color:${done?'#00ff88':m.color}">${done?'DONE':pct.toFixed(1)+'%'}</div>
+      `;
+      ml.appendChild(el);
+    });
+    document.getElementById('lastUpdated').textContent = 'Updated '+new Date().toLocaleTimeString();
+  }
+
+  const posts = [
+    () => { const p=Math.abs(((btcUnits*bp+solUnits*sp-COST)/COST)*100).toFixed(1); return `Bought near the cycle high. Still down ${p}% from cost basis.\n\nStill stacking. Still staked. Still here.\n\nThe accumulation phase is supposed to be uncomfortable. That's the point.\n\n$BTC $SOL`; },
+    () => `BTC just closed 6 consecutive red months.\n\nOnly happened once before in Bitcoin's history.\n\nWhat followed: a 300% rally in 5 months.\n\nI've been buying every single month through it.\n\n$BTC $SOL`,
+    () => `Oil dropping below $100. Macro headwinds easing.\n\nApril opens. Historically Bitcoin's strongest month.\n\nPatient hands get rewarded.\n\n$BTC $SOL`,
+    () => { const s=sp.toFixed(2); return `SOL at $${s}. Still staked. Still earning ~4% APY.\n\nWhile the price consolidates the yield quietly compounds.\n\nTime in market. $BTC $SOL`; },
+    () => `Bernstein called the bottom this week.\n\nSaylor bought 22,000 BTC at $70K average.\n\nInstitutions loading while retail is scared.\n\nI'm just a regular guy with a paycheck doing the same thing at a smaller scale.\n\n$BTC $SOL`,
+    () => { const p=Math.round(bp).toLocaleString(); return `BTC at $${p}. Down 47% from all time high.\n\nEvery macro headwind imaginable — war, inflation, no rate cuts.\n\nAnd it still won't go to zero.\n\nThat's the asset. $BTC $SOL`; },
+    () => `Regular salary. Regular paycheck. Irregular conviction.\n\nDeploying every month regardless of price.\n\nThis is what the accumulation phase looks like from inside it.\n\nNot glamorous. Just consistent. $BTC $SOL`,
+    () => `The people who build wealth in crypto aren't the ones who called the exact bottom.\n\nThey're the ones who kept buying when everything looked broken.\n\nStill here. Still stacking. $BTC $SOL`,
+  ];
+
+  function generatePost() {
+    const o = document.getElementById('postOutput');
+    const c = document.getElementById('copyBtn');
+    o.classList.remove('placeholder');
+    o.textContent = posts[pi % posts.length]();
+    pi++;
+    c.style.display = 'block';
+    c.textContent = 'COPY TO CLIPBOARD';
+  }
+
+  function copyPost() {
+    navigator.clipboard.writeText(document.getElementById('postOutput').textContent).then(() => {
+      const b = document.getElementById('copyBtn');
+      b.textContent = '✓ COPIED';
+      setTimeout(() => b.textContent = 'COPY TO CLIPBOARD', 2000);
+    });
+  }
+
+  async function refreshAll() {
+    document.getElementById('portfolioValue').textContent = 'LOADING...';
+    document.getElementById('portfolioValue').classList.add('loading');
+    await fetchPrices();
+    render();
+  }
+
+  refreshAll();
+  setInterval(refreshAll, 60000);
+</script>
 </body>
 </html>
