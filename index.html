@@ -131,7 +131,27 @@
   .post-output.placeholder { color:var(--muted); font-style:italic; }
   .copy-btn { margin-top:8px; background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:6px 12px; font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; width:100%; transition:all .2s; letter-spacing:1px; }
   .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
-  .footer { text-align:center; font-size:10px; color:var(--muted); padding:16px 0; letter-spacing:1px; }
+    .footer { text-align:center; font-size:10px; color:var(--muted); padding:16px 0; letter-spacing:1px; }
+  .stream-btn { background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:4px 10px; font-family:'Space Mono',monospace; font-size:9px; cursor:pointer; letter-spacing:1px; transition:all .2s; }
+  .stream-btn:hover { border-color:var(--sol); color:var(--sol); }
+  .stream-btn.on { border-color:var(--sol); color:var(--sol); background:rgba(153,69,255,.12); }
+  body.stream-mode #portfolioValue,
+  body.stream-mode #pnlAmount,
+  body.stream-mode #btcValue,
+  body.stream-mode #solValue,
+  body.stream-mode #btcSub,
+  body.stream-mode #solSub,
+  body.stream-mode #beGap,
+  body.stream-mode #beSolNeeded,
+  body.stream-mode #beBtcNeeded,
+  body.stream-mode #hstatLow,
+  body.stream-mode #hstatHigh,
+  body.stream-mode #simTotal,
+  body.stream-mode #simBtcVal,
+  body.stream-mode #simSolVal {
+    filter: blur(9px); -webkit-filter: blur(9px);
+    user-select: none; pointer-events: none;
+  }
 </style>
 </head>
 <body>
@@ -140,6 +160,7 @@
     <div class="logo">joosh<span>_sol</span></div>
     <div class="header-right">
       <button class="refresh-btn" onclick="refreshAll()">↻ REFRESH</button>
+      <button class="stream-btn" id="streamBtn" onclick="toggleStream()">STREAM</button>
       <div class="live-badge"><div class="live-dot"></div>LIVE</div>
     </div>
   </div>
@@ -313,7 +334,13 @@
     { name: '$100K Portfolio', target: 100000, icon: '🏆', color: '#00ff88' },
   ];
   const fmt = (n, d=0) => '$' + n.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
-  const fmtC = p => (p>=0?'+':'')+p.toFixed(2)+'%';
+    const fmtC = p => (p>=0?'+':'')+p.toFixed(2)+'%';
+  function toggleStream(){
+    const on = document.body.classList.toggle('stream-mode');
+    const b = document.getElementById('streamBtn');
+    b.classList.toggle('on', on);
+    b.textContent = on ? 'STREAM ✓' : 'STREAM';
+  }
   document.getElementById('solInput').placeholder = solUnits.toFixed(4);
   document.getElementById('btcInput').placeholder = btcUnits.toFixed(4);
   document.getElementById('solSub').textContent = solUnits.toFixed(4) + ' SOL staked ~4%';
