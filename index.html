@@ -141,17 +141,26 @@
   body.stream-mode #solValue,
   body.stream-mode #btcSub,
   body.stream-mode #solSub,
+  body.stream-mode #beCost,
   body.stream-mode #beGap,
-  body.stream-mode #beSolNeeded,
-  body.stream-mode #beBtcNeeded,
+  body.stream-mode #beCombined,
   body.stream-mode #hstatLow,
   body.stream-mode #hstatHigh,
+  body.stream-mode #historyChart,
   body.stream-mode #simTotal,
+  body.stream-mode #simPnl,
   body.stream-mode #simBtcVal,
-  body.stream-mode #simSolVal {
+  body.stream-mode #simSolVal,
+  body.stream-mode #solInput,
+  body.stream-mode #btcInput {
     filter: blur(9px); -webkit-filter: blur(9px);
     user-select: none; pointer-events: none;
   }
+  .stream-note { display:none; font-size:10px; color:var(--muted); text-align:center; padding:14px; font-style:italic; letter-spacing:.5px; }
+  body.stream-mode #milestoneList { display:none; }
+  body.stream-mode #milestoneStreamNote { display:block; }
+  body.stream-mode #aiSection { display:none; }
+  body.stream-mode #aiStreamNote { display:block; }
 </style>
 </head>
 <body>
@@ -253,13 +262,14 @@
   </div>
   <div class="section-title">BREAKEVEN ANALYSIS</div>
   <div class="breakeven-card">
-    <div class="be-row"><span class="be-label">Cost basis</span><span class="be-value">$35,185.20</span></div>
+    <div class="be-row"><span class="be-label">Cost basis</span><span class="be-value" id="beCost">$35,185.20</span></div>
     <div class="be-row"><span class="be-label">Gap to breakeven</span><span class="be-value" id="beGap">—</span></div>
-    <div class="be-row"><span class="be-label">SOL needed (@ current BTC)</span><span class="be-value" id="beSolNeeded">—</span></div>
-    <div class="be-row"><span class="be-label">BTC needed (@ current SOL)</span><span class="be-value" id="beBtcNeeded">—</span></div>
+    <div class="be-row"><span class="be-label">Combined rise needed</span><span class="be-value" id="beCombined">—</span></div>
+    <div style="font-size:9px;color:var(--muted);margin-top:-4px;">assumes BTC and SOL move by the same % together</div>
   </div>
   <div class="section-title">MILESTONE TRACKER</div>
   <div class="milestone-list" id="milestoneList"></div>
+  <div class="stream-note" id="milestoneStreamNote">🔒 milestone progress hidden while streaming</div>
   <div class="section-title">PRICE SIMULATOR</div>
   <div class="update-card" style="border-color:var(--accent);">
     <div class="update-title" style="color:var(--accent);">WHAT IF PRICES WERE...</div>
@@ -282,6 +292,8 @@
     </div>
   </div>
   <div class="section-title">@joosh_sol POST GENERATOR</div>
+  <div class="stream-note" id="aiStreamNote">🔒 post generator hidden while streaming</div>
+  <div id="aiSection">
   <div class="api-setup" id="apiSetup">
     <div class="api-title">CLAUDE API KEY</div>
     <div class="api-row">
@@ -315,6 +327,7 @@
     </div>
     <div class="post-output placeholder" id="postOutput">Add your API key and voice examples above, then hit generate...</div>
     <button class="copy-btn" id="copyBtn" onclick="copyPost()" style="display:none;">COPY TO CLIPBOARD</button>
+  </div>
   </div>
   <div class="footer">@joosh_sol // HODLING SINCE SEP 30 2025 // $BTC $SOL</div>
 </div>
@@ -548,14 +561,10 @@
     const gEl=document.getElementById('beGap');
     gEl.textContent=gap>0?fmt(gap)+' remaining':'✅ DONE';
     gEl.style.color=gap>0?'#ffd93d':'#00ff88';
-    const snp=(COST-btcUnits*bp)/solUnits;
-    const snEl=document.getElementById('beSolNeeded');
-    snEl.textContent=snp>sp?'$'+snp.toFixed(2):'✅ Already there';
-    snEl.style.color=snp>sp?'#ffd93d':'#00ff88';
-    const bnp=(COST-solUnits*sp)/btcUnits;
-    const bnEl=document.getElementById('beBtcNeeded');
-    bnEl.textContent=bnp>bp?'$'+Math.round(bnp).toLocaleString():'✅ Already there';
-    bnEl.style.color=bnp>bp?'#ffd93d':'#00ff88';
+    const combinedPct=gap>0?(gap/total)*100:0;
+    const cEl=document.getElementById('beCombined');
+    cEl.textContent=gap>0?'+'+combinedPct.toFixed(1)+'%':'✅ DONE';
+    cEl.style.color=gap>0?'#ffd93d':'#00ff88';
     const ml=document.getElementById('milestoneList');
     ml.innerHTML='';
     milestones.forEach(m=>{
