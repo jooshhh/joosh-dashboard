@@ -46,6 +46,9 @@
   .price-value { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; margin-bottom:4px; }
   .price-change { font-size:11px; }
   .price-change.up { color:var(--green); } .price-change.down { color:var(--red); }
+  .period-toggle { display:flex; gap:4px; margin-bottom:10px; }
+  .period-btn { flex:1; background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:5px 0; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; transition:all .15s; }
+  .period-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(0,212,255,.08); }
   .holdings-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
   .holding-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; }
   .holding-label { font-size:9px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
@@ -183,6 +186,11 @@
     <div class="last-updated" id="lastUpdated"></div>
     <div class="error-note" id="errorNote" style="display:none;"></div>
   </div>
+  <div class="period-toggle" id="periodToggle">
+    <button class="period-btn active" data-period="24h" onclick="setPeriod('24h')">1D</button>
+    <button class="period-btn" data-period="7d" onclick="setPeriod('7d')">1W</button>
+    <button class="period-btn" data-period="1y" onclick="setPeriod('1y')">1Y</button>
+  </div>
   <div class="prices-row">
     <div class="price-card btc">
       <div class="price-ticker">BTC</div>
@@ -219,6 +227,13 @@
         <input type="number" id="btcInput" class="update-input" step="0.0001">
       </div>
       <button class="update-btn" onclick="updateHoldings()">SAVE</button>
+    </div>
+    <div class="update-row" style="margin-top:8px;">
+      <div class="update-field">
+        <label class="update-label">COST BASIS ($)</label>
+        <input type="number" id="costInput" class="update-input" step="0.01">
+      </div>
+      <button class="update-btn" onclick="updateCostBasis()">SAVE</button>
     </div>
     <div class="update-note" id="updateNote"></div>
   </div>
@@ -332,20 +347,22 @@
   <div class="footer">@joosh_sol // HODLING SINCE SEP 30 2025 // $BTC $SOL</div>
 </div>
 <script>
-  const COST = 35185.20;
+  let COST = parseFloat(localStorage.getItem('costBasis')) || 0;
   const HODL_START = new Date('2025-09-30');
-  let solUnits = parseFloat(localStorage.getItem('solUnits')) || 141.6;
-  let btcUnits = parseFloat(localStorage.getItem('btcUnits')) || 0.1809;
+  let solUnits = parseFloat(localStorage.getItem('solUnits')) || 0;
+  let btcUnits = parseFloat(localStorage.getItem('btcUnits')) || 0;
   let bp = 0, sp = 0, bc = 0, sc = 0;
+  let selectedPeriod = '24h';
+  let changes = { btc: {'24h':0,'7d':0,'1y':0}, sol: {'24h':0,'7d':0,'1y':0} };
   let apiKey = localStorage.getItem('claudeApiKey') || '';
   let voiceExamples = localStorage.getItem('voiceExamples') || '';
-    const milestones = [
-    { name: 'Breakeven ($35,185)', target: 35185, icon: '⚖️', color: '#ffd93d' },
+    function getMilestones(){ return [
+    { name: 'Breakeven', target: COST, icon: '⚖️', color: '#ffd93d' },
     { name: '$40K Portfolio', target: 40000, icon: '🎯', color: '#00d4ff' },
     { name: '$50K Portfolio', target: 50000, icon: '💎', color: '#9945ff' },
     { name: '$75K Portfolio', target: 75000, icon: '🏗️', color: '#f7931a' },
     { name: '$100K Portfolio', target: 100000, icon: '🏆', color: '#00ff88' },
-  ];
+  ]; }
   const fmt = (n, d=0) => '$' + n.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
     const fmtC = p => (p>=0?'+':'')+p.toFixed(2)+'%';
   function toggleStream(){
@@ -356,6 +373,7 @@
   }
   document.getElementById('solInput').placeholder = solUnits.toFixed(4);
   document.getElementById('btcInput').placeholder = btcUnits.toFixed(4);
+  document.getElementById('costInput').placeholder = COST ? COST.toFixed(2) : 'e.g. 35000';
   document.getElementById('solSub').textContent = solUnits.toFixed(4) + ' SOL staked ~4%';
   document.getElementById('btcSub').textContent = btcUnits.toFixed(4) + ' BTC held';
   if (apiKey) {
@@ -380,6 +398,7 @@
     else { b365.className='hodl-badge locked'; b365.textContent='⋯ 365 days ('+(365-days)+' to go)'; }
   }
   function saveHistoryPoint(total) {
+    if (!total || total<=0) { drawHistory(JSON.parse(localStorage.getItem('portfolioHistory')||'[]')); return; }
     let h = JSON.parse(localStorage.getItem('portfolioHistory')||'[]');
     const now = Date.now();
     if (h.length===0 || now-h[h.length-1].t > 1800000) {
@@ -455,6 +474,14 @@
     document.getElementById('hstatHigh').textContent=fmt(Math.max(...values));
     document.getElementById('hstatPoints').textContent=history.length;
   }
+  function updateCostBasis() {
+    const ci=parseFloat(document.getElementById('costInput').value);
+    if(!isNaN(ci)&&ci>0){COST=ci;localStorage.setItem('costBasis',COST);}
+    document.getElementById('costInput').placeholder=COST?COST.toFixed(2):'';
+    document.getElementById('costInput').value='';
+    render();
+    const n=document.getElementById('updateNote');n.textContent='✓ Cost basis saved';setTimeout(()=>n.textContent='',2000);
+  }
   function updateHoldings() {
     const si=parseFloat(document.getElementById('solInput').value);
     const bi=parseFloat(document.getElementById('btcInput').value);
@@ -528,16 +555,30 @@
   function copyPost(){navigator.clipboard.writeText(document.getElementById('postOutput').textContent).then(()=>{const b=document.getElementById('copyBtn');b.textContent='✓ COPIED';setTimeout(()=>b.textContent='COPY TO CLIPBOARD',2000);});}
   async function fetchPrices(){
     try{
-      const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,solana&vs_currencies=usd&include_24hr_change=true');
+      const r=await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,solana&price_change_percentage=24h,7d,1y');
       if(!r.ok) throw new Error();
       const d=await r.json();
-      bp=d.bitcoin.usd;sp=d.solana.usd;bc=d.bitcoin.usd_24h_change;sc=d.solana.usd_24h_change;
+      const btc=d.find(x=>x.id==='bitcoin'), sol=d.find(x=>x.id==='solana');
+      bp=btc.current_price;sp=sol.current_price;
+      changes.btc['24h']=btc.price_change_percentage_24h_in_currency ?? 0;
+      changes.btc['7d']=btc.price_change_percentage_7d_in_currency ?? 0;
+      changes.btc['1y']=btc.price_change_percentage_1y_in_currency ?? 0;
+      changes.sol['24h']=sol.price_change_percentage_24h_in_currency ?? 0;
+      changes.sol['7d']=sol.price_change_percentage_7d_in_currency ?? 0;
+      changes.sol['1y']=sol.price_change_percentage_1y_in_currency ?? 0;
+      bc=changes.btc[selectedPeriod];sc=changes.sol[selectedPeriod];
       document.getElementById('errorNote').style.display='none';
     }catch(e){
       if(bp===0){bp=68000;sp=83;bc=0;sc=0;}
       const en=document.getElementById('errorNote');
       en.textContent='⚠ Using cached prices — check connection';en.style.display='block';
     }
+  }
+  function setPeriod(p){
+    selectedPeriod=p;
+    bc=changes.btc[p];sc=changes.sol[p];
+    document.querySelectorAll('.period-btn').forEach(b=>b.classList.toggle('active',b.dataset.period===p));
+    render();
   }
   function render(){
     const bv=btcUnits*bp,sv=solUnits*sp,total=bv+sv;
@@ -567,7 +608,8 @@
     cEl.style.color=gap>0?'#ffd93d':'#00ff88';
     const ml=document.getElementById('milestoneList');
     ml.innerHTML='';
-    milestones.forEach(m=>{
+    getMilestones().forEach(m=>{
+      if(!m.target||m.target<=0) return;
       const pct=Math.min((total/m.target)*100,100),done=total>=m.target;
       const el=document.createElement('div');
       el.className='milestone-item'+(done?' milestone-done':'');
