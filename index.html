@@ -153,9 +153,7 @@
   body.stream-mode #simTotal,
   body.stream-mode #simPnl,
   body.stream-mode #simBtcVal,
-  body.stream-mode #simSolVal,
-  body.stream-mode #solInput,
-  body.stream-mode #btcInput {
+  body.stream-mode #simSolVal {
     filter: blur(9px); -webkit-filter: blur(9px);
     user-select: none; pointer-events: none;
   }
@@ -216,19 +214,8 @@
     </div>
   </div>
   <div class="update-card">
-    <div class="update-title">UPDATE HOLDINGS</div>
+    <div class="update-title">COST BASIS</div>
     <div class="update-row">
-      <div class="update-field">
-        <label class="update-label">SOL UNITS</label>
-        <input type="number" id="solInput" class="update-input" step="0.001">
-      </div>
-      <div class="update-field">
-        <label class="update-label">BTC UNITS</label>
-        <input type="number" id="btcInput" class="update-input" step="0.0001">
-      </div>
-      <button class="update-btn" onclick="updateHoldings()">SAVE</button>
-    </div>
-    <div class="update-row" style="margin-top:8px;">
       <div class="update-field">
         <label class="update-label">COST BASIS ($)</label>
         <input type="number" id="costInput" class="update-input" step="0.01">
@@ -392,8 +379,6 @@
     b.classList.toggle('on', on);
     b.textContent = on ? 'STREAM ✓' : 'STREAM';
   }
-  document.getElementById('solInput').placeholder = solUnits.toFixed(4);
-  document.getElementById('btcInput').placeholder = btcUnits.toFixed(4);
   document.getElementById('costInput').placeholder = COST ? COST.toFixed(2) : 'e.g. 35000';
   document.getElementById('solSub').textContent = solUnits.toFixed(4) + ' SOL staked ~4%';
   document.getElementById('btcSub').textContent = btcUnits.toFixed(4) + ' BTC held';
@@ -460,8 +445,6 @@
           COST = data.costBasis; localStorage.setItem('costBasis', COST);
         }
         localStorage.setItem('portfolioHistory', JSON.stringify(data.portfolioHistory));
-        document.getElementById('solInput').placeholder = solUnits.toFixed(4);
-        document.getElementById('btcInput').placeholder = btcUnits.toFixed(4);
         document.getElementById('costInput').placeholder = COST ? COST.toFixed(2) : 'e.g. 35000';
         render();
         drawHistory(data.portfolioHistory);
@@ -573,10 +556,10 @@
       btcUnits = data.btc; solUnits = data.sol;
       localStorage.setItem('btcUnits', btcUnits);
       localStorage.setItem('solUnits', solUnits);
-      document.getElementById('solInput').placeholder = solUnits.toFixed(4);
-      document.getElementById('btcInput').placeholder = btcUnits.toFixed(4);
+      document.getElementById('solSub').textContent = solUnits.toFixed(4) + ' SOL staked ~4%';
+      document.getElementById('btcSub').textContent = btcUnits.toFixed(4) + ' BTC held';
       render();
-      n.textContent = `✓ Synced — BTC ${btcUnits.toFixed(4)}, SOL ${solUnits.toFixed(4)} (liquid ${data.solLiquid.toFixed(2)} + staked ${data.solStaked.toFixed(2)})`;
+      n.textContent = `✓ Synced — BTC ${btcUnits.toFixed(4)}, SOL ${solUnits.toFixed(4)}`;
     } catch (e) {
       n.textContent = `⚠ Sync failed: ${e.message}`;
     }
@@ -607,20 +590,6 @@
     }
   }
 
-  function updateHoldings() {
-    const si=parseFloat(document.getElementById('solInput').value);
-    const bi=parseFloat(document.getElementById('btcInput').value);
-    if(!isNaN(si)&&si>0){solUnits=si;localStorage.setItem('solUnits',solUnits);}
-    if(!isNaN(bi)&&bi>0){btcUnits=bi;localStorage.setItem('btcUnits',btcUnits);}
-    document.getElementById('solSub').textContent=solUnits.toFixed(4)+' SOL staked ~4%';
-    document.getElementById('btcSub').textContent=btcUnits.toFixed(4)+' BTC held';
-    document.getElementById('solInput').placeholder=solUnits.toFixed(4);
-    document.getElementById('btcInput').placeholder=btcUnits.toFixed(4);
-    document.getElementById('solInput').value='';
-    document.getElementById('btcInput').value='';
-    document.getElementById('updateNote').textContent='✓ Saved at '+new Date().toLocaleTimeString();
-    render();
-  }
   function simulate() {
     const sb=parseFloat(document.getElementById('simBtc').value);
     const ss=parseFloat(document.getElementById('simSol').value);
