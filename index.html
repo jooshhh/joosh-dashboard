@@ -237,6 +237,22 @@
     </div>
     <div class="update-note" id="updateNote"></div>
   </div>
+  <div class="update-card" style="border-color:var(--sol);">
+    <div class="update-title">LIVE SYNC (via backend API)</div>
+    <div class="update-row">
+      <div class="update-field" style="flex:2;">
+        <label class="update-label">WORKER URL</label>
+        <input type="text" id="workerUrlInput" class="update-input" placeholder="https://joosh-dashboard-api.yoursubdomain.workers.dev">
+      </div>
+      <button class="update-btn" onclick="saveWorkerUrl()">SAVE</button>
+    </div>
+    <div class="update-row" style="margin-top:8px;">
+      <button class="update-btn" style="flex:1;" onclick="syncHoldings()">SYNC BTC/SOL UNITS</button>
+      <button class="update-btn" style="flex:1;" onclick="fetchTaxLots()">VIEW TAX LOTS</button>
+    </div>
+    <div class="update-note" id="syncNote"></div>
+    <div id="taxLotPanel" style="display:none; margin-top:10px; font-size:11px; line-height:1.6;"></div>
+  </div>
   <div class="section-title">HODL JOURNEY</div>
   <div class="journey-card">
     <div class="days-section">
@@ -254,7 +270,12 @@
   <div class="history-card">
     <div class="history-header">
       <div class="history-title">VALUE OVER TIME</div>
-      <button class="history-clear" onclick="clearHistory()">CLEAR DATA</button>
+      <div style="display:flex;gap:6px;">
+        <button class="history-clear" onclick="exportData()">EXPORT</button>
+        <button class="history-clear" onclick="document.getElementById('importFile').click()">IMPORT</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none;" onchange="importData(event)">
+        <button class="history-clear" onclick="clearHistory()">CLEAR DATA</button>
+      </div>
     </div>
     <div class="history-wrap" id="historyWrap">
       <div class="history-empty" id="historyEmpty">History builds automatically as you visit — check back soon</div>
@@ -277,7 +298,7 @@
   </div>
   <div class="section-title">BREAKEVEN ANALYSIS</div>
   <div class="breakeven-card">
-    <div class="be-row"><span class="be-label">Cost basis</span><span class="be-value" id="beCost">$35,185.20</span></div>
+    <div class="be-row"><span class="be-label">Cost basis</span><span class="be-value" id="beCost">—</span></div>
     <div class="be-row"><span class="be-label">Gap to breakeven</span><span class="be-value" id="beGap">—</span></div>
     <div class="be-row"><span class="be-label">Combined rise needed</span><span class="be-value" id="beCombined">—</span></div>
     <div style="font-size:9px;color:var(--muted);margin-top:-4px;">assumes BTC and SOL move by the same % together</div>
@@ -408,6 +429,50 @@
     }
     drawHistory(h);
   }
+  function exportData() {
+    const data = {
+      exportedAt: new Date().toISOString(),
+      solUnits, btcUnits, costBasis: COST,
+      portfolioHistory: JSON.parse(localStorage.getItem('portfolioHistory')||'[]')
+    };
+    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const dateStr = new Date().toISOString().slice(0,10);
+    a.href = url; a.download = `joosh-dashboard-backup-${dateStr}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (typeof data.solUnits !== 'number' || typeof data.btcUnits !== 'number' || !Array.isArray(data.portfolioHistory)) {
+          throw new Error('File format not recognized');
+        }
+        if (!confirm('This will overwrite your current holdings, cost basis, and history with the backup file. Continue?')) return;
+        solUnits = data.solUnits; localStorage.setItem('solUnits', solUnits);
+        btcUnits = data.btcUnits; localStorage.setItem('btcUnits', btcUnits);
+        if (typeof data.costBasis === 'number' && data.costBasis > 0) {
+          COST = data.costBasis; localStorage.setItem('costBasis', COST);
+        }
+        localStorage.setItem('portfolioHistory', JSON.stringify(data.portfolioHistory));
+        document.getElementById('solInput').placeholder = solUnits.toFixed(4);
+        document.getElementById('btcInput').placeholder = btcUnits.toFixed(4);
+        document.getElementById('costInput').placeholder = COST ? COST.toFixed(2) : 'e.g. 35000';
+        render();
+        drawHistory(data.portfolioHistory);
+        alert('Backup restored.');
+      } catch(err) {
+        alert('Import failed: ' + err.message);
+      }
+      event.target.value = '';
+    };
+    reader.readAsText(file);
+  }
   function clearHistory() {
     localStorage.removeItem('portfolioHistory');
     document.getElementById('historyEmpty').style.display='block';
@@ -482,6 +547,66 @@
     render();
     const n=document.getElementById('updateNote');n.textContent='✓ Cost basis saved';setTimeout(()=>n.textContent='',2000);
   }
+  let workerUrl = localStorage.getItem('workerUrl') || '';
+  document.addEventListener('DOMContentLoaded', () => {
+    const wi = document.getElementById('workerUrlInput');
+    if (wi) wi.placeholder = workerUrl || wi.placeholder;
+  });
+
+  function saveWorkerUrl() {
+    const val = document.getElementById('workerUrlInput').value.trim();
+    if (val) { workerUrl = val.replace(/\/$/, ''); localStorage.setItem('workerUrl', workerUrl); }
+    document.getElementById('workerUrlInput').placeholder = workerUrl;
+    document.getElementById('workerUrlInput').value = '';
+    const n = document.getElementById('syncNote');
+    n.textContent = '✓ Worker URL saved'; setTimeout(() => n.textContent = '', 2000);
+  }
+
+  async function syncHoldings() {
+    const n = document.getElementById('syncNote');
+    if (!workerUrl) { n.textContent = '⚠ Set your Worker URL first'; return; }
+    n.textContent = 'Syncing…';
+    try {
+      const r = await fetch(`${workerUrl}/api/holdings`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      btcUnits = data.btc; solUnits = data.sol;
+      localStorage.setItem('btcUnits', btcUnits);
+      localStorage.setItem('solUnits', solUnits);
+      document.getElementById('solInput').placeholder = solUnits.toFixed(4);
+      document.getElementById('btcInput').placeholder = btcUnits.toFixed(4);
+      render();
+      n.textContent = `✓ Synced — BTC ${btcUnits.toFixed(4)}, SOL ${solUnits.toFixed(4)} (liquid ${data.solLiquid.toFixed(2)} + staked ${data.solStaked.toFixed(2)})`;
+    } catch (e) {
+      n.textContent = `⚠ Sync failed: ${e.message}`;
+    }
+  }
+
+  async function fetchTaxLots() {
+    const n = document.getElementById('syncNote');
+    const panel = document.getElementById('taxLotPanel');
+    if (!workerUrl) { n.textContent = '⚠ Set your Worker URL first'; return; }
+    n.textContent = 'Fetching lots…';
+    try {
+      const r = await fetch(`${workerUrl}/api/cost-basis`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      n.textContent = '✓ Loaded (buy-fill lots only — sends/converts not included)';
+      let html = '';
+      for (const [label, asset] of [['BTC', data.btc], ['SOL', data.sol]]) {
+        html += `<div style="margin-top:8px;color:var(--accent);">${label} — avg cost \$${asset.avgCost.toFixed(2)}, total \$${asset.totalCost.toFixed(2)} for ${asset.totalQty.toFixed(6)}</div>`;
+        for (const lot of asset.lots) {
+          const status = lot.longTerm ? '<span style="color:#00ff88;">LONG-TERM</span>' : `<span style="color:#ffd93d;">SHORT-TERM (${365-lot.daysHeld}d to go)</span>`;
+          html += `<div style="padding-left:8px;color:var(--muted);">${lot.qty.toFixed(6)} @ \$${lot.price.toFixed(2)} — ${lot.daysHeld}d held — ${status}</div>`;
+        }
+      }
+      panel.innerHTML = html;
+      panel.style.display = 'block';
+    } catch (e) {
+      n.textContent = `⚠ Fetch failed: ${e.message}`;
+    }
+  }
+
   function updateHoldings() {
     const si=parseFloat(document.getElementById('solInput').value);
     const bi=parseFloat(document.getElementById('btcInput').value);
@@ -598,6 +723,7 @@
     sce.textContent=fmtC(sc);sce.className='price-change '+(sc>=0?'up':'down');
     document.getElementById('btcValue').textContent=fmt(bv);
     document.getElementById('solValue').textContent=fmt(sv);
+    document.getElementById('beCost').textContent=COST?fmt(COST,2):'—';
     const gap=COST-total;
     const gEl=document.getElementById('beGap');
     gEl.textContent=gap>0?fmt(gap)+' remaining':'✅ DONE';
