@@ -237,6 +237,9 @@
       <button class="update-btn" style="flex:1;" onclick="syncHoldings()">SYNC BTC/SOL UNITS</button>
       <button class="update-btn" style="flex:1;" onclick="fetchTaxLots()">VIEW TAX LOTS</button>
     </div>
+    <div class="update-row" style="margin-top:8px;">
+      <button class="update-btn" style="flex:1; background:var(--sol);" onclick="syncNewDeposits()">SYNC NEW DEPOSITS → COST BASIS</button>
+    </div>
     <div class="update-note" id="syncNote"></div>
     <div id="taxLotPanel" style="display:none; margin-top:10px; font-size:11px; line-height:1.6;"></div>
   </div>
@@ -524,7 +527,13 @@
   }
   function updateCostBasis() {
     const ci=parseFloat(document.getElementById('costInput').value);
-    if(!isNaN(ci)&&ci>0){COST=ci;localStorage.setItem('costBasis',COST);}
+    if(!isNaN(ci)&&ci>0){
+      COST=ci;
+      localStorage.setItem('costBasis',COST);
+      // Manual edit resets the rolling deposit baseline to match, so future
+      // auto-syncs build forward from this corrected number, not a stale one.
+      localStorage.setItem('costBasisBaseline', JSON.stringify({ amount: COST, asOf: new Date().toISOString() }));
+    }
     document.getElementById('costInput').placeholder=COST?COST.toFixed(2):'';
     document.getElementById('costInput').value='';
     render();
@@ -587,6 +596,43 @@
       panel.style.display = 'block';
     } catch (e) {
       n.textContent = `⚠ Fetch failed: ${e.message}`;
+    }
+  }
+
+  // Rolling cost-basis baseline: {amount, asOf} — asOf advances forward each
+  // sync so we only ever ask the API for deposits made since the last check.
+  function getCostBasisBaseline() {
+    const raw = localStorage.getItem('costBasisBaseline');
+    if (raw) return JSON.parse(raw);
+    // First run: seed the baseline from whatever cost basis is currently saved.
+    const seeded = { amount: COST || 0, asOf: new Date().toISOString() };
+    localStorage.setItem('costBasisBaseline', JSON.stringify(seeded));
+    return seeded;
+  }
+
+  async function syncNewDeposits() {
+    const n = document.getElementById('syncNote');
+    if (!workerUrl) { n.textContent = '⚠ Set your Worker URL first'; return; }
+    const baseline = getCostBasisBaseline();
+    n.textContent = `Checking deposits since ${new Date(baseline.asOf).toLocaleDateString()}…`;
+    try {
+      const r = await fetch(`${workerUrl}/api/deposits-since?since=${encodeURIComponent(baseline.asOf)}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      const newTotal = baseline.amount + data.newDeposits;
+      COST = newTotal;
+      localStorage.setItem('costBasis', COST);
+      const newBaseline = { amount: newTotal, asOf: new Date().toISOString() };
+      localStorage.setItem('costBasisBaseline', JSON.stringify(newBaseline));
+      document.getElementById('costInput').placeholder = COST.toFixed(2);
+      render();
+      if (data.newDeposits > 0) {
+        n.textContent = `✓ Found $${data.newDeposits.toFixed(2)} in new deposits — cost basis updated to $${newTotal.toFixed(2)}`;
+      } else {
+        n.textContent = `✓ No new deposits since last check — cost basis unchanged at $${newTotal.toFixed(2)}`;
+      }
+    } catch (e) {
+      n.textContent = `⚠ Deposit sync failed: ${e.message}`;
     }
   }
 
