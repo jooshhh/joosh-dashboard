@@ -249,7 +249,6 @@
       <button class="gain-tab active" data-gp="24h" onclick="setGainPeriod('24h')">1D</button>
       <button class="gain-tab" data-gp="7d" onclick="setGainPeriod('7d')">1W</button>
       <button class="gain-tab" data-gp="30d" onclick="setGainPeriod('30d')">1M</button>
-      <button class="gain-tab" data-gp="1y" onclick="setGainPeriod('1y')">1Y</button>
       <button class="gain-tab" data-gp="all" onclick="setGainPeriod('all')">ALL</button>
     </div>
     <div class="gain-foot">$BTC $SOL</div>
@@ -411,8 +410,8 @@
   let changes = { btc: {'24h':0,'7d':0,'30d':0,'1y':0}, sol: {'24h':0,'7d':0,'30d':0,'1y':0} };
   let pricesStale = false;
   let gainPeriod = '24h';
-  try { const g = localStorage.getItem('gainPeriod'); if (g) gainPeriod = g; } catch(e) {}
-  const GAIN_LABELS = { '24h':'TODAY', '7d':'THIS WEEK', '30d':'THIS MONTH', '1y':'THIS YEAR', 'all':'ALL TIME' };
+  const GAIN_LABELS = { '24h':'TODAY', '7d':'THIS WEEK', '30d':'THIS MONTH', 'all':'ALL TIME' };
+  try { const g = localStorage.getItem('gainPeriod'); if (g && GAIN_LABELS[g]) gainPeriod = g; } catch(e) {}
   let apiKey = localStorage.getItem('claudeApiKey') || '';
   let voiceExamples = localStorage.getItem('voiceExamples') || '';
     function getMilestones(){ return [
