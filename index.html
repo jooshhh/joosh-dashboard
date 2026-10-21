@@ -158,6 +158,25 @@
     filter: blur(9px); -webkit-filter: blur(9px);
     user-select: none; pointer-events: none;
   }
+  .gain-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px 22px 16px; margin-bottom:12px; position:relative; overflow:hidden; text-align:center; }
+  .gain-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background:linear-gradient(90deg,transparent,var(--green),transparent); }
+  .gain-card.neg::before { background:linear-gradient(90deg,transparent,var(--red),transparent); }
+  .gain-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+  .gain-brand { font-family:'Syne',sans-serif; font-weight:800; font-size:13px; }
+  .gain-brand span { color:var(--sol); }
+  .gain-date { font-size:9px; color:var(--muted); letter-spacing:1px; }
+  .gain-label { font-size:10px; color:var(--muted); letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
+  .gain-value { font-family:'Syne',sans-serif; font-size:48px; font-weight:800; letter-spacing:-2px; line-height:1; margin-bottom:18px; }
+  .gain-value.pos { color:var(--green); }
+  .gain-value.neg { color:var(--red); }
+  .gain-tabs { display:flex; gap:4px; margin-bottom:12px; }
+  .gain-tab { flex:1; background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:5px 0; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; transition:all .15s; }
+  .gain-tab.active { border-color:var(--accent); color:var(--accent); background:rgba(0,212,255,.08); }
+  .gain-foot { font-size:10px; color:var(--muted); letter-spacing:1px; }
+  body.stream-mode #gainValue {
+    filter: blur(9px); -webkit-filter: blur(9px);
+    user-select: none; pointer-events: none;
+  }
   .stream-note { display:none; font-size:10px; color:var(--muted); text-align:center; padding:14px; font-style:italic; letter-spacing:.5px; }
   body.stream-mode #milestoneList { display:none; }
   body.stream-mode #milestoneStreamNote { display:block; }
@@ -218,6 +237,22 @@
       <div class="holding-value" id="usdcValue">—</div>
       <div class="holding-sub" id="usdcSub">— USDC uninvested</div>
     </div>
+  </div>
+  <div class="gain-card" id="gainCard">
+    <div class="gain-top">
+      <div class="gain-brand">joosh<span>_sol</span></div>
+      <div class="gain-date" id="gainDate"></div>
+    </div>
+    <div class="gain-label" id="gainLabel">TODAY</div>
+    <div class="gain-value" id="gainValue">—</div>
+    <div class="gain-tabs" id="gainTabs">
+      <button class="gain-tab active" data-gp="24h" onclick="setGainPeriod('24h')">1D</button>
+      <button class="gain-tab" data-gp="7d" onclick="setGainPeriod('7d')">1W</button>
+      <button class="gain-tab" data-gp="30d" onclick="setGainPeriod('30d')">1M</button>
+      <button class="gain-tab" data-gp="1y" onclick="setGainPeriod('1y')">1Y</button>
+      <button class="gain-tab" data-gp="all" onclick="setGainPeriod('all')">ALL</button>
+    </div>
+    <div class="gain-foot">$BTC $SOL</div>
   </div>
   <div class="update-card">
     <div class="update-title" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleCostBasisOverride()">
@@ -373,7 +408,11 @@
   let usdcBalance = parseFloat(localStorage.getItem('usdcBalance')) || 0;
   let bp = 0, sp = 0, bc = 0, sc = 0;
   let selectedPeriod = '24h';
-  let changes = { btc: {'24h':0,'7d':0,'1y':0}, sol: {'24h':0,'7d':0,'1y':0} };
+  let changes = { btc: {'24h':0,'7d':0,'30d':0,'1y':0}, sol: {'24h':0,'7d':0,'30d':0,'1y':0} };
+  let pricesStale = false;
+  let gainPeriod = '24h';
+  try { const g = localStorage.getItem('gainPeriod'); if (g) gainPeriod = g; } catch(e) {}
+  const GAIN_LABELS = { '24h':'TODAY', '7d':'THIS WEEK', '30d':'THIS MONTH', '1y':'THIS YEAR', 'all':'ALL TIME' };
   let apiKey = localStorage.getItem('claudeApiKey') || '';
   let voiceExamples = localStorage.getItem('voiceExamples') || '';
     function getMilestones(){ return [
@@ -736,21 +775,24 @@
   function copyPost(){navigator.clipboard.writeText(document.getElementById('postOutput').textContent).then(()=>{const b=document.getElementById('copyBtn');b.textContent='✓ COPIED';setTimeout(()=>b.textContent='COPY TO CLIPBOARD',2000);});}
   async function fetchPrices(){
     try{
-      const r=await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,solana&price_change_percentage=24h,7d,1y');
+      const r=await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin,solana&price_change_percentage=24h,7d,30d,1y');
       if(!r.ok) throw new Error();
       const d=await r.json();
       const btc=d.find(x=>x.id==='bitcoin'), sol=d.find(x=>x.id==='solana');
       bp=btc.current_price;sp=sol.current_price;
       changes.btc['24h']=btc.price_change_percentage_24h_in_currency ?? 0;
       changes.btc['7d']=btc.price_change_percentage_7d_in_currency ?? 0;
+      changes.btc['30d']=btc.price_change_percentage_30d_in_currency ?? 0;
       changes.btc['1y']=btc.price_change_percentage_1y_in_currency ?? 0;
       changes.sol['24h']=sol.price_change_percentage_24h_in_currency ?? 0;
       changes.sol['7d']=sol.price_change_percentage_7d_in_currency ?? 0;
+      changes.sol['30d']=sol.price_change_percentage_30d_in_currency ?? 0;
       changes.sol['1y']=sol.price_change_percentage_1y_in_currency ?? 0;
       bc=changes.btc[selectedPeriod];sc=changes.sol[selectedPeriod];
+      pricesStale=false;
       document.getElementById('errorNote').style.display='none';
     }catch(e){
-      if(bp===0){bp=68000;sp=83;bc=0;sc=0;}
+      if(bp===0){bp=68000;sp=83;bc=0;sc=0;pricesStale=true;}
       const en=document.getElementById('errorNote');
       en.textContent='⚠ Using cached prices — check connection';en.style.display='block';
     }
@@ -761,7 +803,39 @@
     document.querySelectorAll('.period-btn').forEach(b=>b.classList.toggle('active',b.dataset.period===p));
     render();
   }
+  // Dollar gain for the screenshot card. For timed periods this is the price
+  // move applied to CURRENT holdings (so new deposits don't inflate it). ALL is
+  // total value minus cost basis.
+  function calcGain(period){
+    if (period === 'all') {
+      if (!COST) return null;
+      return btcUnits*bp + solUnits*sp + usdcBalance - COST;
+    }
+    if (pricesStale) return null; // cached fallback prices: don't show a fake gain
+    const bPct = changes.btc[period], sPct = changes.sol[period];
+    if (!bp || !sp || bPct == null || sPct == null || bPct <= -100 || sPct <= -100) return null;
+    const bPrev = bp / (1 + bPct/100), sPrev = sp / (1 + sPct/100);
+    return btcUnits*(bp - bPrev) + solUnits*(sp - sPrev);
+  }
+  function setGainPeriod(p){
+    gainPeriod = p;
+    try { localStorage.setItem('gainPeriod', p); } catch(e) {}
+    renderGain();
+  }
+  function renderGain(){
+    document.querySelectorAll('.gain-tab').forEach(b=>b.classList.toggle('active', b.dataset.gp===gainPeriod));
+    document.getElementById('gainLabel').textContent = GAIN_LABELS[gainPeriod] || '';
+    document.getElementById('gainDate').textContent = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}).toUpperCase();
+    const g = calcGain(gainPeriod);
+    const v = document.getElementById('gainValue'), card = document.getElementById('gainCard');
+    if (g == null) { v.textContent = '—'; v.className = 'gain-value'; card.classList.remove('neg'); return; }
+    const pos = g >= 0;
+    v.textContent = (pos ? '+' : '-') + fmt(Math.abs(g));
+    v.className = 'gain-value ' + (pos ? 'pos' : 'neg');
+    card.classList.toggle('neg', !pos);
+  }
   function render(){
+    renderGain();
     const cbd = document.getElementById('costBasisDisplay');
     if (cbd) cbd.textContent = COST ? '$' + COST.toFixed(2) : '—';
     const bv=btcUnits*bp,sv=solUnits*sp,total=bv+sv+usdcBalance;
