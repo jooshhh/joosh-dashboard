@@ -135,7 +135,7 @@
   .copy-btn { margin-top:8px; background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:6px 12px; font-family:'Space Mono',monospace; font-size:10px; cursor:pointer; width:100%; transition:all .2s; letter-spacing:1px; }
   .copy-btn:hover { border-color:var(--accent); color:var(--accent); }
   .footer { text-align:center; font-size:10px; color:var(--muted); padding:16px 0; letter-spacing:1px; }
-  .gain-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px 14px 10px; margin-bottom:12px; position:relative; overflow:hidden; text-align:center; }
+  .gain-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:14px 16px 12px; margin-bottom:16px; position:relative; overflow:hidden; text-align:center; }
   .gain-card::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background:linear-gradient(90deg,transparent,var(--green),transparent); }
   .gain-card.neg::before { background:linear-gradient(90deg,transparent,var(--red),transparent); }
   .gain-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
@@ -143,12 +143,12 @@
   .gain-brand span { color:var(--sol); }
   .gain-date { font-size:8px; color:var(--muted); letter-spacing:1px; flex:1; text-align:right; }
   .gain-label { font-size:9px; color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
-  .gain-value { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; letter-spacing:-1px; line-height:1; margin-bottom:10px; }
+  .gain-value { font-family:'Syne',sans-serif; font-size:42px; font-weight:800; letter-spacing:-1.5px; line-height:1; margin:6px 0 14px; }
   .gain-value.pos { color:var(--green); }
   .gain-value.neg { color:var(--red); }
-  .gain-tabs { display:flex; gap:4px; }
-  .gain-tab { flex:1; background:transparent; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:4px 0; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; transition:all .15s; }
-  .gain-tab.active { border-color:var(--accent); color:var(--accent); background:rgba(0,212,255,.08); }
+  .gain-tabs { display:flex; justify-content:center; gap:22px; }
+  .gain-tab { background:none; border:none; border-bottom:2px solid transparent; border-radius:0; color:var(--muted); padding:2px 0; font-family:'Space Mono',monospace; font-size:10px; letter-spacing:1px; cursor:pointer; transition:color .15s,border-color .15s; }
+  .gain-tab.active { color:var(--text); border-bottom-color:var(--muted); }
   .gain-foot { font-size:10px; color:var(--muted); letter-spacing:1px; }
 </style>
 </head>
